@@ -9,5 +9,6 @@
   * [Canal 订阅 binlog](binlog/parse-binlog-by-canal.md)
 * Canal
   * [数据格式](canal/data-type.md)
+* [MySQL 全量同步 Postgres](rds_dbsync.md)
 
 
