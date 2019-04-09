@@ -9,6 +9,7 @@
   * [_Java 解析 binlog](binlog/parse-binlog-by-java.md)
   * [Canal 订阅 binlog](binlog/parse-binlog-by-canal.md)
 * Canal
+  * [Canal 简介](canal/introduce.md)
   * [数据格式](canal/data-type.md)
 * [MySQL 全量同步 Postgres](rds_dbsync.md)
 
