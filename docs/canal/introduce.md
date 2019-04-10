@@ -27,7 +27,13 @@ $ cd canal
 $ mvn clean install -Dmaven.test.skip -Denv=release
 
 # ${项目路径}是你本地项目路径，下面的目录就是操作的主目录
-$ cd ${项目路径}/deployer/target/canal
+$ cd target
+$ mkdir deployer
+$ tar -xf canal.deployer-1.1.3.tar.gz -C deployer
+$ mkdir adapter
+$ tar -xf canal.adapter-1.1.3.tar.gz -C adapter
+$ mkdir example
+$ tar -xf canal.example-1.1.3.tar.gz -C example
 
 方式二
 1. 打开浏览器，访问https://github.com/alibaba/canal
@@ -39,9 +45,7 @@ $ cd ${项目路径}/deployer/target/canal
 - canal重要配置文件详解
 ```$bash
 # 进入主目录
-$ cd ${项目路径}/deployer/target/canal
-
-$ cd canal
+$ cd target/canal
 
 # canal.properties 重要参数解释
 
@@ -76,7 +80,7 @@ canal.instance.filter.regex=.*\\..*
 ```
 - 启动canal
 ```bash
-$ ${项目路径}/deployer/target/canal/bin/startup.sh
+$ target/canal/bin/startup.sh
 
 # 项目启动后不一定会成功，需要在订阅的mysql服务名称的文件夹中打印log，注意你写了多少个服务，就应该在多少个服务中看日志
 $ tail -100f ../logs/example/example.log
