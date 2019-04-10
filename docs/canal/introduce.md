@@ -69,6 +69,10 @@ canal.instance.master.position=637
 # canal订阅master上的哪些表，以下配置是所有
 canal.instance.filter.regex=.*\\..*
 
+# 在canal启动成功并消费binlog成后，会生成一个meta.dat的文件，文件内容如下
+# {"clientDatas":[{"clientIdentity":{"clientId":1001,"destination":"example","filter":".*\\..*"},"cursor":{"identity":{"slaveId":-1,"sourceAddress":{"address":"localhost","port":3307}},"postion":{"gtid":"","included":false,"journalName":"master-bin.000001","position":0,"serverId":1,"timestamp":1554814022000}}}],"destination":"example"}
+# 在这个文件可以修改position的位置，用来重新订阅binlog
+
 ```
 - 启动canal
 ```bash
