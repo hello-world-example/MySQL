@@ -170,6 +170,9 @@ public static void main(String args[]) {
         }
     }
 ```
+
+- 测试
+在master修改数据，在客户端代码中能够接受到修改操作
 ## Read More
 [谈谈对Canal（ 增量数据订阅与消费 ）的理解](http://www.importnew.com/25189.html)
 
