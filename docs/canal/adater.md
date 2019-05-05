@@ -15,4 +15,3 @@ adater模块是canal模块实现的由mysql的binlog转储其他第三方的模�
 
 ## Read More
 [谈谈对Canal（ 增量数据订阅与消费 ）的理解](https://github.com/alibaba/canal/wiki/Client-Adapter)
-
