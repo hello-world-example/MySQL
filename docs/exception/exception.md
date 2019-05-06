@@ -24,7 +24,7 @@
 
 2. warning是一个接口，DataDml是通知的数据，通知方案暂时只有邮件通知
 
-3. 邮件通知内容
+3. 邮件通知内容，集成邮件，参考[Spring Boot中使用JavaMailSender发送邮件](http://blog.didispace.com/springbootmailsender/)
 
 ```
 拉取的canal server的ip
