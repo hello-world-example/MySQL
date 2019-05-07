@@ -56,6 +56,16 @@ giraffe使用了以下基础框架
 
 
 
+#### restapi介绍
+
+| api                              | 访问格式 | 描述              |
+| -------------------------------- | ---- | --------------- |
+| http://localhost:8080/getRunning | post | 获取当前拉取的线程是否还在运行 |
+| http://localhost:8080/run        | post | 运行任务            |
+| http://localhost:8080/stop       | post | 停止任务            |
+
+
+
 #### 扩展阅读
 
 > [OGNL 语言介绍与实践](https://www.ibm.com/developerworks/cn/opensource/os-cn-ognl/index.html)
