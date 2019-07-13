@@ -39,10 +39,10 @@
     3. 导出数据，关于数据备份，参考[mysqldump备份时保持数据一致性](https://blog.csdn.net/anzhen0429/article/details/76096141)，数据库可自定义
 
        ```
-       mysqldump -u root -p -P3307 --single-transaction --master-data --flush-log --database ttpai_boss_v1 > ttpai_boss_v1.sql 
+       mysqldump -u root -p -P3307 --single-transaction --master-data --flush-log --database xxx > xxx.sql 
        ```
 
-    4. vim ttpai_boss_v1.sql，找到change master语句中的MASTER_LOG_FILE和MASTER_LOG_POS的值
+    4. vim xx.sql，找到change master语句中的MASTER_LOG_FILE和MASTER_LOG_POS的值
 
     5. 部署canal，参考[安装canal](https://hello-world-example.github.io/MySQL/#/binlog/parse-binlog-by-canal)和[canal简介](https://hello-world-example.github.io/MySQL/#/canal/introduce)，配置canal请参考[canal简介](https://hello-world-example.github.io/MySQL/#/canal/introduce)
 
@@ -73,7 +73,7 @@
        ```
        # postgres数据库连接
        postgres.jdbc.driver=org.postgresql.Driver
-       postgres.jdbc.url=jdbc:postgresql://127.0.0.1:5432/ttpai
+       postgres.jdbc.url=jdbc:postgresql://127.0.0.1:5432/xxx
        postgres.jdbc.username=postgres
        postgres.jdbc.password=123456
        ```

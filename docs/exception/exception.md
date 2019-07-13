@@ -12,8 +12,6 @@
        }
     /**
      * 设置条件停止
-     * @author zhida.chen@ttpai.cn
-     *
      */
    public void stop(DataDml dataDml) {
 
