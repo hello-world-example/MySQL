@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fetch Size | MySQL</title>
+
+
+<link rel="stylesheet" href="/MySQL/book.min.79de1f7861b0c98f453c0a93bebf3608a280809e417787746c373699639900d7.css">
+
+
+
+
+<link rel="icon" href="/MySQL/favicon.png" type="image/x-icon">
+
+
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+</head>
+
+<body>
+  <input type="checkbox" style="display: none" id="menu-control" />
+  <main class="flex container">
+
+    <aside class="book-menu fixed">
+      <nav>
+<h2 class="book-brand">
+  <a href="https://hello-world-example.github.io/MySQL/">MySQL</a>
+</h2>
+
+
+
+
+
+
+    
+  
+  
+  
+
+  <style>
+  nav ul a[href$="\2fMySQL\2f docs\2fJdbc\2f FetchSize\2f "] {
+      color: #004ed0;
+  }
+  </style>
+
+<ul>
+<li><strong>安装</strong>
+
+<ul>
+<li><a href="/MySQL/docs/Install/Mac-Multiple-Instance/">MAC 多实例安装 和 主从配置</a></li>
+</ul></li>
+<li><strong>JDBC</strong>
+
+<ul>
+<li><a href="/MySQL/docs/Jdbc/FetchSize/">FetchSize 处理大结果集</a></li>
+</ul></li>
+<li><strong>优化</strong></li>
+<li><strong>Binlog</strong>
+
+<ul>
+<li><a href="/MySQL/docs/Binlog/Quick-Start/">快速入门</a></li>
+<li><a href="/MySQL/docs/Binlog/Gtid/">GTID</a></li>
+<li><a href="/MySQL/docs/Binlog/binlog-protocol/">_binlog 协议</a></li>
+<li><a href="/MySQL/docs/Binlog/parse-binlog-by-java/">_Java 解析 binlog</a></li>
+<li><a href="/MySQL/docs/Binlog/parse-binlog-by-canal/">_Canal 订阅 binlog</a></li>
+</ul></li>
+<li><strong>Canal</strong>
+
+<ul>
+<li><a href="/MySQL/docs/canal/introduce/">Canal 简介</a></li>
+<li><a href="/MySQL/docs/canal/data-type/">数据格式</a></li>
+</ul></li>
+<li><strong>其他</strong>
+
+<ul>
+<li><a href="/MySQL/docs/rds_dbsync/">MySQL 全量同步 Postgres</a></li>
+</ul></li>
+</ul>
+
+
+
+
+
+
+
+</nav>
+
+
+<script>
+(function() {
+  var menu = document.querySelector("aside.book-menu nav");
+  addEventListener("beforeunload", function(event) {
+    localStorage.setItem("menu.scrollTop", menu.scrollTop);
+  });
+  menu.scrollTop = localStorage.getItem("menu.scrollTop");
+})();
+</script>
+
+    </aside>
+
+    <div class="book-page">
+      <header class="flex align-center justify-between book-header">
+  <label for="menu-control">
+    <img src="/MySQL/svg/menu.svg" alt="Menu" />
+  </label>
+  <strong>Fetch Size</strong>
+</header>
+
+      
+<article class="markdown">
+
+<h1 id="fetchsize-处理大结果集">FetchSize 处理大结果集</h1>
+
+<p>在数据导出的时候，MySQL 驱动 默认的 <code>ResultSet</code> 实现，会一次性把所有的结果加载到内存中，如果查询结果集特别大， 可能会 OOM，常见的避免方式有：</p>
+
+<ul>
+<li><strong>limit 分页导出</strong>，但是这种方式<strong>越到后面，效率越低</strong>，因为每次导出都要从 0 开始，跳过所有已导出的数据</li>
+<li><strong>根据主键从上次导出的最后一个位置开始导出</strong>，如：<code>SELECT * FROM TABLE WHERE PK &gt; xxx LIMIT x</code>，但是这种方式在<strong>联合主键的情况下可能会有问题</strong>，操作起来比较麻烦</li>
+</ul>
+
+<p>这里主要介绍，使用 <code>FetchSize</code> 的方式进行导出，每次拉取指定量的数据进行处理，避免 OOM，直到所有数据拉取完毕。</p>
+
+<blockquote>
+<p>注意：直接设置 <code>statement.setFetchSize(100)</code> 是不起作用的，还是会出现 OOM</p>
+</blockquote>
+
+<h2 id="如何设置">如何设置</h2>
+
+<h3 id="正确使用-fetchsize-推荐">正确使用 FetchSize（推荐）</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">final</span> <span style="color:#a6e22e">Statement</span> statement <span style="color:#f92672">=</span> connection.<span style="color:#a6e22e">createStatement</span>(
+        ResultSet.<span style="color:#a6e22e">TYPE_FORWARD_ONLY</span>,
+        ResultSet.<span style="color:#a6e22e">CONCUR_READ_ONLY</span>
+);
+<span style="color:#75715e">// 必须是 Integer.MIN_VALUE
+</span><span style="color:#75715e"></span>statement.<span style="color:#a6e22e">setFetchSize</span>(Integer.<span style="color:#a6e22e">MIN_VALUE</span>);</code></pre></div>
+<p>或者</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">statement <span style="color:#f92672">=</span> connection.<span style="color:#a6e22e">prepareStatement</span>(sql);
+<span style="color:#75715e">// 必须是 Integer.MIN_VALUE
+</span><span style="color:#75715e"></span>statement.<span style="color:#a6e22e">setFetchSize</span>(Integer.<span style="color:#a6e22e">MIN_VALUE</span>);</code></pre></div>
+<blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">&gt;</span> <span style="color:#75715e">// @see com.mysql.jdbc.ConnectionImpl
+</span><span style="color:#75715e"></span><span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">java</span>.<span style="color:#a6e22e">sql</span>.<span style="color:#a6e22e">PreparedStatement</span> prepareStatement(String <span style="color:#a6e22e">sql</span>) <span style="color:#66d9ef">throws</span> <span style="color:#a6e22e">SQLException</span> {
+<span style="color:#f92672">&gt;</span>   <span style="color:#66d9ef">return</span> prepareStatement(sql, DEFAULT_RESULT_SET_TYPE, DEFAULT_RESULT_SET_CONCURRENCY);
+<span style="color:#f92672">&gt;</span> }
+<span style="color:#f92672">&gt;</span> <span style="color:#960050;background-color:#1e0010">```</span>
+<span style="color:#f92672">&gt;</span>
+<span style="color:#f92672">&gt;</span> <span style="color:#f92672">-</span> <span style="color:#960050;background-color:#1e0010">`</span>com.<span style="color:#a6e22e">mysql</span>.<span style="color:#a6e22e">jdbc</span>.<span style="color:#a6e22e">ConnectionImpl</span><span style="color:#960050;background-color:#1e0010">`</span>
+<span style="color:#f92672">&gt;</span>   <span style="color:#f92672">-</span> <span style="color:#960050;background-color:#1e0010">`</span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">DEFAULT_RESULT_SET_TYPE</span> <span style="color:#f92672">=</span> ResultSet.<span style="color:#a6e22e">TYPE_FORWARD_ONLY</span><span style="color:#960050;background-color:#1e0010">`</span>
+<span style="color:#f92672">&gt;</span>   <span style="color:#f92672">-</span> <span style="color:#960050;background-color:#1e0010">`</span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">DEFAULT_RESULT_SET_CONCURRENCY</span> <span style="color:#f92672">=</span> ResultSet.<span style="color:#a6e22e">CONCUR_READ_ONLY</span><span style="color:#960050;background-color:#1e0010">`</span> 
+
+
+
+<span style="color:#960050;background-color:#1e0010">###</span> 使用 <span style="color:#a6e22e">MySQL</span> 驱动原生方法</code></pre></div>
+<p>java
+statement.unwrap(com.mysql.jdbc.Statement.class).enableStreamingResults();</p>
+
+<pre><code>
+通过源码的可以看出，实际上跟第一种方式是一样
+
+</code></pre>
+
+<p>java
+// @see com.mysql.jdbc.StatementImpl
+public void enableStreamingResults() throws SQLException {
+    synchronized (checkClosed().getConnectionMutex()) {
+        this.originalResultSetType = this.resultSetType;
+        this.originalFetchSize = this.fetchSize;</p>
+</blockquote>
+
+<pre><code>    setFetchSize(Integer.MIN_VALUE); // ❤
+    setResultSetType(ResultSet.TYPE_FORWARD_ONLY); // ❤
+}
+</code></pre>
+
+<p>}</p>
+
+<pre><code>
+
+
+### 设置  JDBC 参数
+
+</code></pre>
+
+<p>java
+&hellip;&amp;useCursorFetch=true</p>
+
+<pre><code>
+且 `Statement 以 TYPE_FORWARD_ONLY` 打开，再设置 `fetchSize(100)`，表示采用服务器端游标，每次从服务器取 `fetchSize` 条数据，**注意这种方式会大量占用服务器的临时空间，一般比较少用**
+
+
+
+## 如何使用
+
+使用方式与正常方式没有区别，但是要注意：**不要把所有结果集放入内存集合，否则还是会 OOM**，应该获取一部分，处理一部分，**保证处理过的数据可被 JVM 回收**
+
+</code></pre>
+
+<p>java
+// 设置 FetchSize
+statement = connection.prepareStatement(sql);
+statement.setFetchSize(Integer.MIN_VALUE);</p>
+
+<p>// 使用 StreamingResult
+ResultSet resultSet = statement.executeQuery();
+// 每次获取部分数据，直到所有数据处理完才会停止，所有的操作由 JDBC 驱动实现
+while (resultSet.next()) {
+    // do something<br />
+}
+```</p>
+
+<h2 id="resultset-配置">ResultSet 配置</h2>
+
+<blockquote>
+<p><a href="https://docs.oracle.com/javase/8/docs/api/java/sql/ResultSet.html">JDK8 ResultSet Doc</a></p>
+
+<p><a href="http://www.matools.com/file/manual/jdk_api_1.8_google/index.html?overview-summary.html">JDK8 ResultSet Doc 中文</a></p>
+</blockquote>
+
+<table>
+<thead>
+<tr>
+<th>ResultSet 配置</th>
+<th>分类</th>
+<th>描述</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><code>TYPE_FORWARD_ONLY</code></td>
+<td>Type</td>
+<td>【默认】只能向前移动的 ResultSet 对象的类型</td>
+</tr>
+
+<tr>
+<td><code>TYPE_SCROLL_INSENSITIVE</code></td>
+<td>Type</td>
+<td>可滚动，不受 ResultSet 底层数据更改影响</td>
+</tr>
+
+<tr>
+<td><code>TYPE_SCROLL_SENSITIVE</code></td>
+<td>Type</td>
+<td>可滚动，受 ResultSet 底层数据更改影响</td>
+</tr>
+
+<tr>
+<td><code>CONCUR_READ_ONLY</code></td>
+<td>Concurrency</td>
+<td>【默认】只读模式</td>
+</tr>
+
+<tr>
+<td><code>CONCUR_UPDATABLE</code></td>
+<td>Concurrency</td>
+<td>标示可以更新</td>
+</tr>
+
+<tr>
+<td><code>CLOSE_CURSORS_AT_COMMIT</code></td>
+<td>Holdability</td>
+<td>当提交当前事务时，关闭游标</td>
+</tr>
+
+<tr>
+<td><code>HOLD_CURSORS_OVER_COMMIT</code></td>
+<td>Holdability</td>
+<td>当提交当前事务时，保持游标</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="read-more">Read More</h2>
+
+<ul>
+<li><a href="https://blog.csdn.net/seven_3306/article/details/9303879">正确使用MySQL JDBC setFetchSize()方法解决JDBC处理大结果集</a></li>
+<li><a href="https://blog.csdn.net/yzsind/article/details/7853029">关于oracle与mysql官方jdbc的一些区别</a></li>
+<li><a href="https://blog.csdn.net/seven_3306/article/details/9237495">Java不写文件，LOAD DATA LOCAL INFILE大批量导入数据到MySQL的实现</a></li>
+</ul>
+</article>
+
+      
+<div class="book-footer justify-end">
+  
+  
+  <div>
+    <a href="https://github.com/hello-world-example/MySQL/edit/master/HuGo/content/docs/Jdbc/FetchSize.md" target="_blank" rel="noopener">
+      <img src="/MySQL/svg/edit.svg" alt="Edit" /> Edit this page
+    </a>
+  </div>
+  
+</div>
+
+
+      
+    </div>
+
+    
+  
+
+  <aside class="book-toc level-3 fixed">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#fetchsize-处理大结果集">FetchSize 处理大结果集</a>
+<ul>
+<li><a href="#如何设置">如何设置</a>
+<ul>
+<li><a href="#正确使用-fetchsize-推荐">正确使用 FetchSize（推荐）</a></li>
+</ul></li>
+<li><a href="#resultset-配置">ResultSet 配置</a></li>
+<li><a href="#read-more">Read More</a></li>
+</ul></li>
+</ul>
+</nav>
+  </aside>
+
+
+
+  </main>
+  
+  
+  
+</body>
+
+</html>

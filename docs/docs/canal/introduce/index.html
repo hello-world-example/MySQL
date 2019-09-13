@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Introduce | MySQL</title>
+
+
+<link rel="stylesheet" href="/MySQL/book.min.79de1f7861b0c98f453c0a93bebf3608a280809e417787746c373699639900d7.css">
+
+
+
+
+<link rel="icon" href="/MySQL/favicon.png" type="image/x-icon">
+
+
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+</head>
+
+<body>
+  <input type="checkbox" style="display: none" id="menu-control" />
+  <main class="flex container">
+
+    <aside class="book-menu fixed">
+      <nav>
+<h2 class="book-brand">
+  <a href="https://hello-world-example.github.io/MySQL/">MySQL</a>
+</h2>
+
+
+
+
+
+
+    
+  
+  
+  
+
+  <style>
+  nav ul a[href$="\2fMySQL\2f docs\2f canal\2fintroduce\2f "] {
+      color: #004ed0;
+  }
+  </style>
+
+<ul>
+<li><strong>安装</strong>
+
+<ul>
+<li><a href="/MySQL/docs/Install/Mac-Multiple-Instance/">MAC 多实例安装 和 主从配置</a></li>
+</ul></li>
+<li><strong>JDBC</strong>
+
+<ul>
+<li><a href="/MySQL/docs/Jdbc/FetchSize/">FetchSize 处理大结果集</a></li>
+</ul></li>
+<li><strong>优化</strong></li>
+<li><strong>Binlog</strong>
+
+<ul>
+<li><a href="/MySQL/docs/Binlog/Quick-Start/">快速入门</a></li>
+<li><a href="/MySQL/docs/Binlog/Gtid/">GTID</a></li>
+<li><a href="/MySQL/docs/Binlog/binlog-protocol/">_binlog 协议</a></li>
+<li><a href="/MySQL/docs/Binlog/parse-binlog-by-java/">_Java 解析 binlog</a></li>
+<li><a href="/MySQL/docs/Binlog/parse-binlog-by-canal/">_Canal 订阅 binlog</a></li>
+</ul></li>
+<li><strong>Canal</strong>
+
+<ul>
+<li><a href="/MySQL/docs/canal/introduce/">Canal 简介</a></li>
+<li><a href="/MySQL/docs/canal/data-type/">数据格式</a></li>
+</ul></li>
+<li><strong>其他</strong>
+
+<ul>
+<li><a href="/MySQL/docs/rds_dbsync/">MySQL 全量同步 Postgres</a></li>
+</ul></li>
+</ul>
+
+
+
+
+
+
+
+</nav>
+
+
+<script>
+(function() {
+  var menu = document.querySelector("aside.book-menu nav");
+  addEventListener("beforeunload", function(event) {
+    localStorage.setItem("menu.scrollTop", menu.scrollTop);
+  });
+  menu.scrollTop = localStorage.getItem("menu.scrollTop");
+})();
+</script>
+
+    </aside>
+
+    <div class="book-page">
+      <header class="flex align-center justify-between book-header">
+  <label for="menu-control">
+    <img src="/MySQL/svg/menu.svg" alt="Menu" />
+  </label>
+  <strong>Introduce</strong>
+</header>
+
+      
+<article class="markdown">
+
+<h1 id="canal简介">canal简介</h1>
+
+<h2 id="canal介绍">canal介绍</h2>
+
+<p>Canal是阿里巴巴的开源软件，它主要是一个应用和mysql之间的数据同步中间件。类似Mq等这样的消息中间件，但他不需要借助其他的系统发消息，他是直接监听Mysql数据库，它伪装成mysql的从库通过对binlog日志的解析从而实现了数据库增删改查的监听</p>
+
+<h2 id="主要的业务场景">主要的业务场景</h2>
+
+<ul>
+<li>数据库备份</li>
+<li>搜索引擎索引更新&amp;建立</li>
+<li>业务缓存的更新</li>
+<li>充当消息组件（订单变更，商品资料变更等）</li>
+</ul>
+
+<h2 id="工作原理">工作原理</h2>
+
+<ol>
+<li>canal模拟mysql slave的交互协议，伪装自己为mysql slave，向mysql master发送dump协议</li>
+<li>​mysql master收到dump请求，开始推送binary log给slave(也就是canal)</li>
+<li>canal解析binary log对象(原始为byte流)</li>
+</ol>
+
+<h2 id="canal环境部署">Canal环境部署</h2>
+
+<ul>
+<li><p>安装canal</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-" data-lang="">方式一
+$ git clone https://github.com/alibaba/canal.git
+$ cd canal
+
+# 编译打包
+$ mvn clean install -Dmaven.test.skip -Denv=release
+
+# ${项目路径}是你本地项目路径，下面的目录就是操作的主目录
+$ cd target
+$ mkdir deployer
+$ tar -xf canal.deployer-1.1.3.tar.gz -C deployer
+$ mkdir adapter
+$ tar -xf canal.adapter-1.1.3.tar.gz -C adapter
+$ mkdir example
+$ tar -xf canal.example-1.1.3.tar.gz -C example
+
+方式二
+1. 打开浏览器，访问https://github.com/alibaba/canal
+2. 点击页面的realse按钮
+3. 选择页面中assets列表中canal.deployer-1.1.3.tar.gz，进行下载
+4. tar -xf canal.deployer-1.1.3.tar.gz进行解压</code></pre></div></li>
+
+<li><p>canal重要配置文件详解</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-" data-lang=""># 进入主目录
+$ cd target/canal
+
+# canal.properties 重要参数解释
+
+# canal自己的serverId，无实际意义
+canal.id = 5000
+# canal服务本机ip
+canal.ip = 127.0.0.1
+# canal服务本机端口
+canal.port = 11111
+# canal监听的mysql名称，这个名称可以自定义，可配置多个，用逗号分隔，配置一个就会有一个以配置名称为名的文件夹
+# 例如此时，就会有一个example文件夹，这是一一对应的
+canal.destinations = example
+
+$ cd example/
+
+$ instance.properties 重要参数解释
+# canal伪装成slave的id，不能与主从配置中的机器一样
+canal.instance.mysql.slaveId=1024
+# canal访问master的ip和端口
+canal.instance.master.address=127.0.0.1:3307
+# canal访问master的binlog
+canal.instance.master.journal.name=master-bin.000001
+# canal访问master的binlog，可在master上通过show master status;查看最新一个position
+canal.instance.master.position=637
+# canal订阅master上的哪些表，以下配置是所有
+canal.instance.filter.regex=.*\\..*
+
+# 在canal启动成功并消费binlog成后，会生成一个meta.dat的文件，文件内容如下
+# {&#34;clientDatas&#34;:[{&#34;clientIdentity&#34;:{&#34;clientId&#34;:1001,&#34;destination&#34;:&#34;example&#34;,&#34;filter&#34;:&#34;.*\\..*&#34;},&#34;cursor&#34;:{&#34;identity&#34;:{&#34;slaveId&#34;:-1,&#34;sourceAddress&#34;:{&#34;address&#34;:&#34;localhost&#34;,&#34;port&#34;:3307}},&#34;postion&#34;:{&#34;gtid&#34;:&#34;&#34;,&#34;included&#34;:false,&#34;journalName&#34;:&#34;master-bin.000001&#34;,&#34;position&#34;:0,&#34;serverId&#34;:1,&#34;timestamp&#34;:1554814022000}}}],&#34;destination&#34;:&#34;example&#34;}
+# 在这个文件可以修改position的位置，用来重新订阅binlog</code></pre></div></li>
+
+<li><p>启动canal</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ target/canal/bin/startup.sh
+
+<span style="color:#75715e"># 项目启动后不一定会成功，需要在订阅的mysql服务名称的文件夹中打印log，注意你写了多少个服务，就应该在多少个服务中看日志</span>
+$ tail -100f ../logs/example/example.log
+
+<span style="color:#75715e"># 看到以下提示说明启动成功</span>
+c.a.otter.canal.instance.core.AbstractCanalInstance - start successful....</code></pre></div></li>
+
+<li><p>客户端订阅代码</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-" data-lang="">public static void main(String args[]) {
+    // 创建链接
+    CanalConnector connector = CanalConnectors
+            .newSingleConnector(new InetSocketAddress(&#34;127.0.0.1&#34;, 11111), &#34;example&#34;, &#34;&#34;, &#34;&#34;);
+    int batchSize = 1000;
+    int emptyCount = 0;
+    try {
+        connector.connect();
+        connector.subscribe(&#34;.*\\..*&#34;);
+        connector.rollback();
+        int totalEmtryCount = 1200;
+        while (emptyCount &lt; totalEmtryCount) {
+            Message message = connector.getWithoutAck(batchSize); // 获取指定数量的数据
+            long batchId = message.getId();
+            int size = message.getEntries().size();
+            if (batchId == -1 || size == 0) {
+                emptyCount++;
+                System.out.println(&#34;empty count : &#34; + emptyCount);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                emptyCount = 0;
+                // System.out.printf(&#34;message[batchId=%s,size=%s] \n&#34;,
+                // batchId, size);
+                printEntry(message.getEntries());
+            }
+
+            connector.ack(batchId); // 提交确认
+            // connector.rollback(batchId); // 处理失败, 回滚数据
+        }
+
+        System.out.println(&#34;empty too many times, exit&#34;);
+    } finally {
+        connector.disconnect();
+    }
+}
+
+private static void printEntry(List&lt;Entry&gt; entrys) {
+    for (Entry entry : entrys) {
+        if (entry.getEntryType() == EntryType.TRANSACTIONBEGIN
+                || entry.getEntryType() == EntryType.TRANSACTIONEND) {
+            continue;
+        }
+
+        RowChange rowChage = null;
+        try {
+            rowChage = RowChange.parseFrom(entry.getStoreValue());
+        } catch (Exception e) {
+            throw new RuntimeException(&#34;ERROR ## parser of eromanga-event has an error , data:&#34; + entry.toString(),
+                    e);
+        }
+
+        EventType eventType = rowChage.getEventType();
+        System.out.println(String.format(&#34;================&gt; binlog[%s:%s] , name[%s,%s] , eventType : %s&#34;,
+                entry.getHeader().getLogfileName(), entry.getHeader().getLogfileOffset(),
+                entry.getHeader().getSchemaName(), entry.getHeader().getTableName(), eventType));
+
+        for (RowData rowData : rowChage.getRowDatasList()) {
+            if (eventType == EventType.DELETE) {
+                printColumn(rowData.getBeforeColumnsList());
+            } else if (eventType == EventType.INSERT) {
+                printColumn(rowData.getAfterColumnsList());
+            } else {
+                System.out.println(&#34;-------&gt; before&#34;);
+                printColumn(rowData.getBeforeColumnsList());
+                System.out.println(&#34;-------&gt; after&#34;);
+                printColumn(rowData.getAfterColumnsList());
+            }
+        }
+    }
+}
+
+private static void printColumn(List&lt;Column&gt; columns) {
+    for (Column column : columns) {
+        System.out.println(column.getName() + &#34; : &#34; + column.getValue() + &#34;    update=&#34; + column.getUpdated());
+    }
+}</code></pre></div></li>
+
+<li><p>测试
+在master修改数据，在客户端代码中能够接受到修改操作</p>
+
+<h2 id="read-more">Read More</h2>
+
+<p><a href="http://www.importnew.com/25189.html">谈谈对Canal（ 增量数据订阅与消费 ）的理解</a></p></li>
+</ul>
+</article>
+
+      
+<div class="book-footer justify-end">
+  
+  
+  <div>
+    <a href="https://github.com/hello-world-example/MySQL/edit/master/HuGo/content/docs/canal/introduce.md" target="_blank" rel="noopener">
+      <img src="/MySQL/svg/edit.svg" alt="Edit" /> Edit this page
+    </a>
+  </div>
+  
+</div>
+
+
+      
+    </div>
+
+    
+  
+
+  <aside class="book-toc level-3 fixed">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#canal简介">canal简介</a>
+<ul>
+<li><a href="#canal介绍">canal介绍</a></li>
+<li><a href="#主要的业务场景">主要的业务场景</a></li>
+<li><a href="#工作原理">工作原理</a></li>
+<li><a href="#canal环境部署">Canal环境部署</a></li>
+<li><a href="#read-more">Read More</a></li>
+</ul></li>
+</ul>
+</nav>
+  </aside>
+
+
+
+  </main>
+  
+  
+  
+</body>
+
+</html>

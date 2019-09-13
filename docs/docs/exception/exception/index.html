@@ -2,10 +2,9 @@
 <html lang="en">
 
 <head>
-	<meta name="generator" content="Hugo 0.57.2" />
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MySQL | MySQL</title>
+<title>Exception | MySQL</title>
 
 
 <link rel="stylesheet" href="/MySQL/book.min.79de1f7861b0c98f453c0a93bebf3608a280809e417787746c373699639900d7.css">
@@ -16,7 +15,6 @@
 <link rel="icon" href="/MySQL/favicon.png" type="image/x-icon">
 
 
-<link rel="alternate" type="application/rss+xml" href="https://hello-world-example.github.io/MySQL/index.xml" title="MySQL" />
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -46,7 +44,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   <style>
-  nav ul a[href$="\2fMySQL\2f "] {
+  nav ul a[href$="\2fMySQL\2f docs\2f exception\2f exception\2f "] {
       color: #004ed0;
   }
   </style>
@@ -111,25 +109,65 @@ https://github.com/alex-shpak/hugo-book
   <label for="menu-control">
     <img src="/MySQL/svg/menu.svg" alt="Menu" />
   </label>
-  <strong>MySQL</strong>
+  <strong>Exception</strong>
 </header>
 
       
-<article class="markdown"></article>
+<article class="markdown">
+
+<h1 id="消费失败通知方案">消费失败通知方案</h1>
+
+<ol>
+<li><p>当消费失败回滚时，进行通知，代码如下</p>
+
+<pre><code>private void rollback(MessageConsumer.ConsumeResult consumeResult, Message message) {
+
+       if (connector != null &amp;&amp; message != null) {
+           connector.rollback(message.getId());
+       }
+       stop(consumeResult.getErrorDataDml());
+   }
+/**
+ * 设置条件停止
+ */
+public void stop(DataDml dataDml) {
+
+	running = Boolean.FALSE;
+	warning.warning(dataDml);
+}
+</code></pre></li>
+
+<li><p>warning是一个接口，DataDml是通知的数据，通知方案暂时只有邮件通知</p></li>
+
+<li><p>邮件通知内容，集成邮件，参考<a href="http://blog.didispace.com/springbootmailsender/">Spring Boot中使用JavaMailSender发送邮件</a></p>
+
+<pre><code>拉取的canal server的ip
+拉取的canal server的端口
+拉取的canal server的用户
+拉取的canal server的密码
+拉取的canal server的destination
+拉取的batchId
+拉取失败的sql
+拉取失败的时间
+</code></pre></li>
+
+<li><p>有以下原因会导致消费失败</p>
+
+<pre><code>1. 程序bug不能解析canal传递过来的sql
+  解决方案：解决bug，并重新上线并消费
+2. canal server或者是destination的配置文件配置错误
+  解决方案：检查canal server和destination的配置文件，并配置正确
+3. 消费成功，但是提交消费成功时，网络出错，导致postgresql实际已消费成功，但是canal    却消费失败？
+</code></pre></li>
+</ol>
+</article>
 
       
-<div class="book-footer justify-between">
-  
-  <div>
-    
-    <a href="https://github.com/hello-world-example/MySQL/commit/9f4812366e2ebf6a35398a9dfc46bc6c5d4fa3c9" title='Last modified Sep 14, 2019 by kailbin' target="_blank" rel="noopener">
-      <img src="/MySQL/svg/calendar.svg" alt="Changed" /> Sep 14, 2019
-    </a>
-  </div>
+<div class="book-footer justify-end">
   
   
   <div>
-    <a href="https://github.com/hello-world-example/MySQL/edit/master/HuGo/content/_index.md" target="_blank" rel="noopener">
+    <a href="https://github.com/hello-world-example/MySQL/edit/master/HuGo/content/docs/exception/exception.md" target="_blank" rel="noopener">
       <img src="/MySQL/svg/edit.svg" alt="Edit" /> Edit this page
     </a>
   </div>
@@ -142,6 +180,14 @@ https://github.com/alex-shpak/hugo-book
 
     
   
+
+  <aside class="book-toc level-3 fixed">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#消费失败通知方案">消费失败通知方案</a></li>
+</ul>
+</nav>
+  </aside>
 
 
 

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Validation | MySQL</title>
+
+
+<link rel="stylesheet" href="/MySQL/book.min.79de1f7861b0c98f453c0a93bebf3608a280809e417787746c373699639900d7.css">
+
+
+
+
+<link rel="icon" href="/MySQL/favicon.png" type="image/x-icon">
+
+
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+</head>
+
+<body>
+  <input type="checkbox" style="display: none" id="menu-control" />
+  <main class="flex container">
+
+    <aside class="book-menu fixed">
+      <nav>
+<h2 class="book-brand">
+  <a href="https://hello-world-example.github.io/MySQL/">MySQL</a>
+</h2>
+
+
+
+
+
+
+    
+  
+  
+  
+
+  <style>
+  nav ul a[href$="\2fMySQL\2f docs\2fvalidation\2fvalidation\2f "] {
+      color: #004ed0;
+  }
+  </style>
+
+<ul>
+<li><strong>安装</strong>
+
+<ul>
+<li><a href="/MySQL/docs/Install/Mac-Multiple-Instance/">MAC 多实例安装 和 主从配置</a></li>
+</ul></li>
+<li><strong>JDBC</strong>
+
+<ul>
+<li><a href="/MySQL/docs/Jdbc/FetchSize/">FetchSize 处理大结果集</a></li>
+</ul></li>
+<li><strong>优化</strong></li>
+<li><strong>Binlog</strong>
+
+<ul>
+<li><a href="/MySQL/docs/Binlog/Quick-Start/">快速入门</a></li>
+<li><a href="/MySQL/docs/Binlog/Gtid/">GTID</a></li>
+<li><a href="/MySQL/docs/Binlog/binlog-protocol/">_binlog 协议</a></li>
+<li><a href="/MySQL/docs/Binlog/parse-binlog-by-java/">_Java 解析 binlog</a></li>
+<li><a href="/MySQL/docs/Binlog/parse-binlog-by-canal/">_Canal 订阅 binlog</a></li>
+</ul></li>
+<li><strong>Canal</strong>
+
+<ul>
+<li><a href="/MySQL/docs/canal/introduce/">Canal 简介</a></li>
+<li><a href="/MySQL/docs/canal/data-type/">数据格式</a></li>
+</ul></li>
+<li><strong>其他</strong>
+
+<ul>
+<li><a href="/MySQL/docs/rds_dbsync/">MySQL 全量同步 Postgres</a></li>
+</ul></li>
+</ul>
+
+
+
+
+
+
+
+</nav>
+
+
+<script>
+(function() {
+  var menu = document.querySelector("aside.book-menu nav");
+  addEventListener("beforeunload", function(event) {
+    localStorage.setItem("menu.scrollTop", menu.scrollTop);
+  });
+  menu.scrollTop = localStorage.getItem("menu.scrollTop");
+})();
+</script>
+
+    </aside>
+
+    <div class="book-page">
+      <header class="flex align-center justify-between book-header">
+  <label for="menu-control">
+    <img src="/MySQL/svg/menu.svg" alt="Menu" />
+  </label>
+  <strong>Validation</strong>
+</header>
+
+      
+<article class="markdown">
+
+<h1 id="数据校验">数据校验</h1>
+
+<h3 id="数据库校验">数据库校验</h3>
+
+<ol>
+<li>mysql查询出所有的数据库(select * from information_schema.SCHEMATA where schema_name not in (information_schema,mysql,performance_schema,sys))，postgresql查询出所有的schema(select * from information_schema.schemata)</li>
+<li>查询mysql数据库中的所有表(select * from information_schema.TABLES where table_schema=xxx)，查询postgres下所有schema的所有表数据(select * from pg_tables)</li>
+<li>查询出mysql的表结构数据和postgres的表结构数据</li>
+<li>对比表结构数据，对于不一致的数据发送邮件通知，集成邮件，参考<a href="http://blog.didispace.com/springbootmailsender/">Spring Boot中使用JavaMailSender发送邮件</a></li>
+</ol>
+
+<h3 id="数据校验-1">数据校验</h3>
+
+<ul>
+<li>数据校验在于数据的生产者和消费者速度一致才能进行有效校验</li>
+
+<li><p>数据校验的task是每60s运行一次</p></li>
+
+<li><p>全量数据</p>
+
+<ol>
+<li>校验表数据量的大小，如果差别不大(由于查询时，mysql可能会插入数据，以及网络延迟，所以只能看一个大概)</li>
+</ol></li>
+
+<li><p>增量数据校验</p>
+
+<ol>
+<li>取当前时间-10s&lt;修改时间&lt;当前时间-70s的时间段</li>
+<li>将分别从mysql和postgres中取得数据，转化成对象</li>
+<li>对两个list中的数据进行比较</li>
+<li>将两者不同的数据，通过邮件进行通知，集成邮件，参考<a href="http://blog.didispace.com/springbootmailsender/">Spring Boot中使用JavaMailSender发送邮件</a></li>
+</ol></li>
+</ul>
+
+<blockquote>
+<ul>
+<li><p><a href="https://blog.csdn.net/xlxxcc/article/details/51754524">mysql系统简介</a></p></li>
+
+<li><p><a href="http://www.zhongweicheng.com/?p=3040">postgres系统表简介</a></p></li>
+</ul>
+</blockquote>
+</article>
+
+      
+<div class="book-footer justify-end">
+  
+  
+  <div>
+    <a href="https://github.com/hello-world-example/MySQL/edit/master/HuGo/content/docs/validation/validation.md" target="_blank" rel="noopener">
+      <img src="/MySQL/svg/edit.svg" alt="Edit" /> Edit this page
+    </a>
+  </div>
+  
+</div>
+
+
+      
+    </div>
+
+    
+  
+
+  <aside class="book-toc level-3 fixed">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#数据校验">数据校验</a>
+<ul>
+<li>
+<ul>
+<li><a href="#数据库校验">数据库校验</a></li>
+<li><a href="#数据校验-1">数据校验</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </aside>
+
+
+
+  </main>
+  
+  
+  
+</body>
+
+</html>

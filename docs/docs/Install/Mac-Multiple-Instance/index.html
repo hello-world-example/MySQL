@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mac Multiple Instance | MySQL</title>
+
+
+<link rel="stylesheet" href="/MySQL/book.min.79de1f7861b0c98f453c0a93bebf3608a280809e417787746c373699639900d7.css">
+
+
+
+
+<link rel="icon" href="/MySQL/favicon.png" type="image/x-icon">
+
+
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+</head>
+
+<body>
+  <input type="checkbox" style="display: none" id="menu-control" />
+  <main class="flex container">
+
+    <aside class="book-menu fixed">
+      <nav>
+<h2 class="book-brand">
+  <a href="https://hello-world-example.github.io/MySQL/">MySQL</a>
+</h2>
+
+
+
+
+
+
+    
+  
+  
+  
+
+  <style>
+  nav ul a[href$="\2fMySQL\2f docs\2fInstall\2fMac-Multiple-Instance\2f "] {
+      color: #004ed0;
+  }
+  </style>
+
+<ul>
+<li><strong>安装</strong>
+
+<ul>
+<li><a href="/MySQL/docs/Install/Mac-Multiple-Instance/">MAC 多实例安装 和 主从配置</a></li>
+</ul></li>
+<li><strong>JDBC</strong>
+
+<ul>
+<li><a href="/MySQL/docs/Jdbc/FetchSize/">FetchSize 处理大结果集</a></li>
+</ul></li>
+<li><strong>优化</strong></li>
+<li><strong>Binlog</strong>
+
+<ul>
+<li><a href="/MySQL/docs/Binlog/Quick-Start/">快速入门</a></li>
+<li><a href="/MySQL/docs/Binlog/Gtid/">GTID</a></li>
+<li><a href="/MySQL/docs/Binlog/binlog-protocol/">_binlog 协议</a></li>
+<li><a href="/MySQL/docs/Binlog/parse-binlog-by-java/">_Java 解析 binlog</a></li>
+<li><a href="/MySQL/docs/Binlog/parse-binlog-by-canal/">_Canal 订阅 binlog</a></li>
+</ul></li>
+<li><strong>Canal</strong>
+
+<ul>
+<li><a href="/MySQL/docs/canal/introduce/">Canal 简介</a></li>
+<li><a href="/MySQL/docs/canal/data-type/">数据格式</a></li>
+</ul></li>
+<li><strong>其他</strong>
+
+<ul>
+<li><a href="/MySQL/docs/rds_dbsync/">MySQL 全量同步 Postgres</a></li>
+</ul></li>
+</ul>
+
+
+
+
+
+
+
+</nav>
+
+
+<script>
+(function() {
+  var menu = document.querySelector("aside.book-menu nav");
+  addEventListener("beforeunload", function(event) {
+    localStorage.setItem("menu.scrollTop", menu.scrollTop);
+  });
+  menu.scrollTop = localStorage.getItem("menu.scrollTop");
+})();
+</script>
+
+    </aside>
+
+    <div class="book-page">
+      <header class="flex align-center justify-between book-header">
+  <label for="menu-control">
+    <img src="/MySQL/svg/menu.svg" alt="Menu" />
+  </label>
+  <strong>Mac Multiple Instance</strong>
+</header>
+
+      
+<article class="markdown">
+
+<h1 id="mac-多实例安装-和-主从配置">MAC 多实例安装 和 主从配置</h1>
+
+<h2 id="如果已经安装-mysql-查看安装路径在哪">如果已经安装 MySQL 查看安装路径在哪</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 查看 mysqld 所在目录</span>
+$ which mysqld
+/usr/local/bin/mysqld
+
+<span style="color:#75715e"># 查看真实路径</span>
+$ ll /usr/local/bin/mysqld
+lrwxr-xr-x  ... /usr/local/bin/mysqld -&gt; ../Cellar/mysql/5.7.17/bin/mysqld
+
+$ cd /usr/local/Cellar/mysql/5.7.17/
+$ pwd
+/usr/local/Cellar/mysql/5.7.17</code></pre></div>
+<h2 id="启动多实例">启动多实例</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 创建两个目录</span>
+$ mkdir -p /opt/mysql_3307
+$ mkdir -p /opt/mysql_3308
+
+$ vim /opt/mysql_3307/my.cnf
+<span style="color:#75715e"># 内容如下</span>
+<span style="color:#f92672">[</span>mysqld<span style="color:#f92672">]</span>
+basedir <span style="color:#f92672">=</span> /opt/mysql_3307
+datadir <span style="color:#f92672">=</span> /opt/mysql_3307/data
+port <span style="color:#f92672">=</span> <span style="color:#ae81ff">3307</span>
+server_id <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
+socket <span style="color:#f92672">=</span> /opt/mysql_3307/mysql.sock
+
+$ vim /opt/mysql_3308/my.cnf
+<span style="color:#75715e"># 内容如下</span>
+<span style="color:#f92672">[</span>mysqld<span style="color:#f92672">]</span>
+basedir <span style="color:#f92672">=</span> /opt/mysql_3308
+datadir <span style="color:#f92672">=</span> /opt/mysql_3308/data
+port <span style="color:#f92672">=</span> <span style="color:#ae81ff">3308</span>
+server_id <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>
+socket <span style="color:#f92672">=</span> /opt/mysql_3308/mysql.sock
+
+<span style="color:#75715e"># 初始化数据，--initialize-insecure是非安全模式，产生默认用户是root，密码是空</span>
+$ mysqld --defaults-file<span style="color:#f92672">=</span>/opt/mysql_3307/my.cnf --initialize-insecure
+$ mysqld --defaults-file<span style="color:#f92672">=</span>/opt/mysql_3308/my.cnf --initialize-insecure
+
+<span style="color:#75715e"># 启动 MySQL</span>
+$ mysqld --defaults-file<span style="color:#f92672">=</span>/opt/mysql_3307/my.cnf &amp;
+$ mysqld --defaults-file<span style="color:#f92672">=</span>/opt/mysql_3308/my.cnf &amp;</code></pre></div>
+<blockquote>
+<ul>
+<li><a href="https://dev.mysql.com/doc/refman/5.7/en/data-directory-initialization.html">2.10.1 Initializing the Data Directory 官方文档</a></li>
+<li><a href="https://dev.mysql.com/doc/refman/5.7/en/mysqld-safe.html">4.3.2 mysqld_safe — MySQL Server Startup Script</a></li>
+</ul>
+</blockquote>
+
+<h2 id="创建主从关系">创建主从关系</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ vim /opt/mysql_3307/my.cnf
+<span style="color:#75715e"># 新增</span>
+log_bin <span style="color:#f92672">=</span> master-bin
+binlog_format <span style="color:#f92672">=</span> ROW
+
+$ vim /opt/mysql_3308/my.cnf
+<span style="color:#75715e"># 新增</span>
+relay-log<span style="color:#f92672">=</span>slave-relay-bin
+
+<span style="color:#75715e"># 重启服务器，使用tcp(ip地址)的方式</span>
+<span style="color:#75715e"># mysqladmin -uroot -p -P3307 -h127.0.0.1 shutdown</span>
+
+<span style="color:#75715e"># mysql登录有两种方式，一种是socket，一种是tcp，使用socket登录时，会产生/tmp/mysql.sock文件，如果手动的将此文件删除，将导致无法登录， 不指定-h选项或者是-hlocalhost采用读取socket</span>
+<span style="color:#75715e"># 文件来登录的，在多实例的情况下，容易导致读取的socket文件不存在的错误，所以建议使用-h127.0.0.1指定固定ip地址来访问</span>
+
+<span style="color:#75715e"># 登陆 master</span>
+$ mysql -uroot -S /opt/mysql_3307/mysql.sock
+
+<span style="color:#75715e"># -p表示密码，-P表示端口，由于使用非安全模式来启动，所以建议修改密码</span>
+$ mysql -uroot -p -P3307 -h127.0.0.1
+
+<span style="color:#75715e"># 修改密码</span>
+mysql&gt; SET PASSWORD FOR <span style="color:#e6db74">&#39;root&#39;</span>@<span style="color:#e6db74">&#39;localhost&#39;</span> <span style="color:#f92672">=</span> PASSWORD<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;123456&#39;</span><span style="color:#f92672">)</span>;
+mysql&gt; SET PASSWORD FOR <span style="color:#e6db74">&#39;root&#39;</span>@<span style="color:#e6db74">&#39;127.0.0.1&#39;</span> <span style="color:#f92672">=</span> PASSWORD<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;123456&#39;</span><span style="color:#f92672">)</span>;
+
+<span style="color:#75715e"># 给用户分配权限，此次实验使slave使用root用户拉取master上的数据，生产环境不建议分配所有权限，这里是实验环境，暂时分配所有权限</span>
+mysql&gt; grant all privileges on *.* to root@localhost identified by <span style="color:#e6db74">&#39;123456&#39;</span>;
+mysql&gt; grant all privileges on *.* to root@127.0.0.1 identified by <span style="color:#e6db74">&#39;123456&#39;</span>;
+
+<span style="color:#75715e"># 刷新权限，一定一定要刷新，否则会导致同步失败等各种奇葩的问题</span>
+mysql&gt; flush privileges; 
+
+mysql&gt; show master status;
++-------------------+----------+--------------+------------------+-------------------+
+| File              | Position | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set |
++-------------------+----------+--------------+------------------+-------------------+
+| master-bin.000001 |      <span style="color:#ae81ff">154</span> |              |                  |                   |
++-------------------+----------+--------------+------------------+-------------------+
+<span style="color:#ae81ff">1</span> row in set <span style="color:#f92672">(</span><span style="color:#ae81ff">0</span>.00 sec<span style="color:#f92672">)</span>
+
+<span style="color:#75715e"># 登陆 salve</span>
+$ mysql -uroot -S /opt/mysql_3308/mysql.sock
+
+<span style="color:#75715e"># change master to master_host=&#39;127.0.0.1&#39;,master_port=3307,master_user=&#39;root&#39;,master_password=&#39;&#39;,master_log_file=&#39;master-bin.000001&#39;,master_log_pos=0;</span>
+mysql&gt; change master to master_host<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;127.0.0.1&#39;</span>,
+    -&gt; master_port<span style="color:#f92672">=</span><span style="color:#ae81ff">3307</span>,master_user<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;root&#39;</span>,master_password<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;123456&#39;</span>,
+    -&gt; master_log_file<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;master-bin.000001&#39;</span>,
+    -&gt; master_log_pos<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>; <span style="color:#75715e"># 指定请求同步Master的bin-log的哪个变更之后的内容</span>
+    
+mysql&gt; start slave;
+
+mysql&gt; show slave status <span style="color:#ae81ff">\G</span>
+
+<span style="color:#75715e"># 如果显示的Slave_IO_Running和Slave_SQL_Running的状态都是yes说明，主从配置成功，只要有一个配置不成功，说明配置不成功</span>
+<span style="color:#75715e"># Slave_IO_Running：连接到主库，并读取主库的日志到本地，生成本地日志文件</span>
+<span style="color:#75715e"># Slave_SQL_Running:读取本地日志文件，并执行日志里的SQL命令</span></code></pre></div>
+<h2 id="主从复制之前数据同步">主从复制之前数据同步</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 从库上停止 复制</span>
+$ mysql&gt; stop slave;
+
+<span style="color:#75715e"># dump 主库数据，--master-data=1 包含 change master to 语句</span>
+$ mysqldump -uroot -p --all-databases --master-data<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> -S /opt/mysql_3307/mysql.sock &gt; /tmp/master1.sql
+
+<span style="color:#75715e"># 数据导入 从库</span>
+$ mysql -uroot  -S /opt/mysql_3308/mysql.sock &lt; /tmp/master1.sql
+
+<span style="color:#75715e"># 从库上开启 复制</span>
+$ mysql&gt; start slave;</code></pre></div>
+<h2 id="注意事项">注意事项</h2>
+
+<ul>
+<li>从库一般禁止修改，否则主从复制会报错，从库一般需要创建只读的账户</li>
+<li>如果主从复制报错，<code>stop slave;</code>  然后全量同步数据，之后重新制定主库，然后 <code>start slave;</code></li>
+</ul>
+
+<h2 id="read-more">Read More</h2>
+
+<ul>
+<li><a href="https://www.cnblogs.com/chenmh/p/5300370.html">MySQL mysqldump数据导出详解</a></li>
+<li><a href="https://blog.csdn.net/seteor/article/details/17263509">mysqldump的&ndash;master-data参数</a></li>
+<li><a href="http://blog.chinaunix.net/uid-451-id-3143431.html">mysqldump中master-data和dump-slave的区别</a></li>
+</ul>
+</article>
+
+      
+<div class="book-footer justify-end">
+  
+  
+  <div>
+    <a href="https://github.com/hello-world-example/MySQL/edit/master/HuGo/content/docs/Install/Mac-Multiple-Instance.md" target="_blank" rel="noopener">
+      <img src="/MySQL/svg/edit.svg" alt="Edit" /> Edit this page
+    </a>
+  </div>
+  
+</div>
+
+
+      
+    </div>
+
+    
+  
+
+  <aside class="book-toc level-3 fixed">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#mac-多实例安装-和-主从配置">MAC 多实例安装 和 主从配置</a>
+<ul>
+<li><a href="#如果已经安装-mysql-查看安装路径在哪">如果已经安装 MySQL 查看安装路径在哪</a></li>
+<li><a href="#启动多实例">启动多实例</a></li>
+<li><a href="#创建主从关系">创建主从关系</a></li>
+<li><a href="#主从复制之前数据同步">主从复制之前数据同步</a></li>
+<li><a href="#注意事项">注意事项</a></li>
+<li><a href="#read-more">Read More</a></li>
+</ul></li>
+</ul>
+</nav>
+  </aside>
+
+
+
+  </main>
+  
+  
+  
+</body>
+
+</html>

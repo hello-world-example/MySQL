@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Type | MySQL</title>
+
+
+<link rel="stylesheet" href="/MySQL/book.min.79de1f7861b0c98f453c0a93bebf3608a280809e417787746c373699639900d7.css">
+
+
+
+
+<link rel="icon" href="/MySQL/favicon.png" type="image/x-icon">
+
+
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+</head>
+
+<body>
+  <input type="checkbox" style="display: none" id="menu-control" />
+  <main class="flex container">
+
+    <aside class="book-menu fixed">
+      <nav>
+<h2 class="book-brand">
+  <a href="https://hello-world-example.github.io/MySQL/">MySQL</a>
+</h2>
+
+
+
+
+
+
+    
+  
+  
+  
+
+  <style>
+  nav ul a[href$="\2fMySQL\2f docs\2f canal\2f data-type\2f "] {
+      color: #004ed0;
+  }
+  </style>
+
+<ul>
+<li><strong>安装</strong>
+
+<ul>
+<li><a href="/MySQL/docs/Install/Mac-Multiple-Instance/">MAC 多实例安装 和 主从配置</a></li>
+</ul></li>
+<li><strong>JDBC</strong>
+
+<ul>
+<li><a href="/MySQL/docs/Jdbc/FetchSize/">FetchSize 处理大结果集</a></li>
+</ul></li>
+<li><strong>优化</strong></li>
+<li><strong>Binlog</strong>
+
+<ul>
+<li><a href="/MySQL/docs/Binlog/Quick-Start/">快速入门</a></li>
+<li><a href="/MySQL/docs/Binlog/Gtid/">GTID</a></li>
+<li><a href="/MySQL/docs/Binlog/binlog-protocol/">_binlog 协议</a></li>
+<li><a href="/MySQL/docs/Binlog/parse-binlog-by-java/">_Java 解析 binlog</a></li>
+<li><a href="/MySQL/docs/Binlog/parse-binlog-by-canal/">_Canal 订阅 binlog</a></li>
+</ul></li>
+<li><strong>Canal</strong>
+
+<ul>
+<li><a href="/MySQL/docs/canal/introduce/">Canal 简介</a></li>
+<li><a href="/MySQL/docs/canal/data-type/">数据格式</a></li>
+</ul></li>
+<li><strong>其他</strong>
+
+<ul>
+<li><a href="/MySQL/docs/rds_dbsync/">MySQL 全量同步 Postgres</a></li>
+</ul></li>
+</ul>
+
+
+
+
+
+
+
+</nav>
+
+
+<script>
+(function() {
+  var menu = document.querySelector("aside.book-menu nav");
+  addEventListener("beforeunload", function(event) {
+    localStorage.setItem("menu.scrollTop", menu.scrollTop);
+  });
+  menu.scrollTop = localStorage.getItem("menu.scrollTop");
+})();
+</script>
+
+    </aside>
+
+    <div class="book-page">
+      <header class="flex align-center justify-between book-header">
+  <label for="menu-control">
+    <img src="/MySQL/svg/menu.svg" alt="Menu" />
+  </label>
+  <strong>Data Type</strong>
+</header>
+
+      
+<article class="markdown">
+
+<h1 id="数据格式">数据格式</h1>
+
+<h2 id="flatmessage-message">FlatMessage - Message</h2>
+
+<ul>
+<li>com.alibaba.otter.canal.common.MQMessageUtils
+
+<ul>
+<li><code>messageConverter()</code> 将Message转换为FlatMessage</li>
+</ul></li>
+<li>com.alibaba.otter.canal.protocol.FlatMessage</li>
+
+<li><p>com.alibaba.otter.canal.protocol.Message</p></li>
+
+<li><p><code>List&lt;CanalEntry.Entry&gt; entrys = message.getEntries();</code></p></li>
+
+<li><p><code>CanalEntry.RowChange rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());</code></p></li>
+
+<li><p><code>CanalEntry.EventType eventType = rowChange.getEventType();</code></p></li>
+
+<li><p><code>for (CanalEntry.RowData rowData : rowChange.getRowDatasList())</code></p></li>
+
+<li><p><code>List&lt;CanalEntry.Column&gt; columns = rowData.getBeforeColumnsList();</code></p></li>
+
+<li><p><code>List&lt;CanalEntry.Column&gt; columns = rowData.getAfterColumnsList();</code></p></li>
+
+<li></li>
+</ul>
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th>FlatMessage</th>
+<th>Message</th>
+<th></th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><code>long</code></td>
+<td><code>id</code></td>
+<td><code>message.getId()</code></td>
+<td></td>
+</tr>
+
+<tr>
+<td><code>String</code></td>
+<td><code>database</code></td>
+<td><code>entry.getHeader().getSchemaName()</code></td>
+<td>数据库名</td>
+</tr>
+
+<tr>
+<td><code>String</code></td>
+<td><code>table</code></td>
+<td><code>entry.getHeader().getTableName()</code></td>
+<td>表名</td>
+</tr>
+
+<tr>
+<td><code>List&lt;String&gt;</code></td>
+<td><code>pkNames</code></td>
+<td><code>if (column.getIsKey()) flatMessage.addPkName(column.getName());</code></td>
+<td>主键名</td>
+</tr>
+
+<tr>
+<td><code>Boolean</code></td>
+<td><code>isDdl</code></td>
+<td><code>rowChange.getIsDdl()</code></td>
+<td>是否 DDL 语句</td>
+</tr>
+
+<tr>
+<td><code>String</code></td>
+<td><code>type</code></td>
+<td><code>eventType.toString()</code></td>
+<td>CanalEntry.EventType 事件类型</td>
+</tr>
+
+<tr>
+<td><code>Long</code></td>
+<td><code>es</code></td>
+<td><code>entry.getHeader().getExecuteTime()</code></td>
+<td>binlog executeTime</td>
+</tr>
+
+<tr>
+<td><code>Long</code></td>
+<td><code>ts</code></td>
+<td><code>System.currentTimeMillis()</code></td>
+<td>dml build timeStamp</td>
+</tr>
+
+<tr>
+<td><code>String</code></td>
+<td><code>sql</code></td>
+<td><code>rowChange.getSql()</code></td>
+<td>执行的SQL语句</td>
+</tr>
+
+<tr>
+<td>&mdash;&mdash;&mdash;</td>
+<td>&mdash;&mdash;&mdash;</td>
+<td>&mdash;&mdash;&mdash;</td>
+<td>&mdash;&mdash;&mdash;</td>
+</tr>
+
+<tr>
+<td><code>Map&lt;String, Integer&gt;</code></td>
+<td><code>sqlType</code></td>
+<td><code>sqlType.put(column.getName(), column.getSqlType());</code></td>
+<td>MySQL 数据类型</td>
+</tr>
+
+<tr>
+<td><code>Map&lt;String, String&gt;</code></td>
+<td><code>mysqlType</code></td>
+<td><code>mysqlType.put(column.getName(), column.getMysqlType());</code></td>
+<td>Java 数据类型</td>
+</tr>
+
+<tr>
+<td><code>List&lt;Map&lt;String, String&gt;&gt;</code></td>
+<td><code>data</code></td>
+<td><code>rowData.getAfterColumnsList()</code></td>
+<td>新数据</td>
+</tr>
+
+<tr>
+<td><code>List&lt;Map&lt;String, String&gt;&gt;</code></td>
+<td><code>old</code></td>
+<td><code>rowData.getBeforeColumnsList()</code></td>
+<td>老数据</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="canalentry-entrytype">CanalEntry.EntryType</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * &lt;code&gt;TRANSACTIONBEGIN = 1;&lt;/code&gt;
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">static</span> <span style="color:#66d9ef">final</span> <span style="color:#a6e22e">int</span> TRANSACTIONBEGIN_VALUE <span style="color:#f92672">=</span> 1;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * &lt;code&gt;ROWDATA = 2;&lt;/code&gt;
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">static</span> <span style="color:#66d9ef">final</span> <span style="color:#a6e22e">int</span> ROWDATA_VALUE <span style="color:#f92672">=</span> 2;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * &lt;code&gt;TRANSACTIONEND = 3;&lt;/code&gt;
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">static</span> <span style="color:#66d9ef">final</span> <span style="color:#a6e22e">int</span> TRANSACTIONEND_VALUE <span style="color:#f92672">=</span> 3;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * &lt;code&gt;HEARTBEAT = 4;&lt;/code&gt;
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * &lt;pre&gt;
+</span><span style="color:#75715e"> * * 心跳类型，内部使用，外部暂不可见，可忽略 *
+</span><span style="color:#75715e"> * &lt;/pre&gt;
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">static</span> <span style="color:#66d9ef">final</span> <span style="color:#a6e22e">int</span> HEARTBEAT_VALUE <span style="color:#f92672">=</span> 4;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * &lt;code&gt;GTIDLOG = 5;&lt;/code&gt;
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">static</span> <span style="color:#66d9ef">final</span> <span style="color:#a6e22e">int</span> GTIDLOG_VALUE <span style="color:#f92672">=</span> 5;</code></pre></div>
+<h2 id="canalentry-eventtype">CanalEntry.EventType</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * &lt;code&gt;INSERT = 1;&lt;/code&gt;
+</span><span style="color:#75715e"> */</span>
+INSERT(0, 1),
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * &lt;code&gt;UPDATE = 2;&lt;/code&gt;
+</span><span style="color:#75715e"> */</span>
+UPDATE(1, 2),
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * &lt;code&gt;DELETE = 3;&lt;/code&gt;
+</span><span style="color:#75715e"> */</span>
+DELETE(2, 3),
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * &lt;code&gt;CREATE = 4;&lt;/code&gt;
+</span><span style="color:#75715e"> */</span>
+CREATE(3, 4),
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * &lt;code&gt;ALTER = 5;&lt;/code&gt;
+</span><span style="color:#75715e"> */</span>
+ALTER(4, 5),
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * &lt;code&gt;ERASE = 6;&lt;/code&gt;
+</span><span style="color:#75715e"> */</span>
+ERASE(5, 6),
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * &lt;code&gt;QUERY = 7;&lt;/code&gt;
+</span><span style="color:#75715e"> */</span>
+QUERY(6, 7),
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * &lt;code&gt;TRUNCATE = 8;&lt;/code&gt;
+</span><span style="color:#75715e"> */</span>
+TRUNCATE(7, 8),
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * &lt;code&gt;RENAME = 9;&lt;/code&gt;
+</span><span style="color:#75715e"> */</span>
+RENAME(8, 9),
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * &lt;code&gt;CINDEX = 10;&lt;/code&gt;
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * &lt;pre&gt;
+</span><span style="color:#75715e"> * *CREATE INDEX*
+</span><span style="color:#75715e"> * &lt;/pre&gt;
+</span><span style="color:#75715e"> */</span>
+CINDEX(9, 10),
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * &lt;code&gt;DINDEX = 11;&lt;/code&gt;
+</span><span style="color:#75715e"> */</span>
+DINDEX(10, 11),
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * &lt;code&gt;GTID = 12;&lt;/code&gt;
+</span><span style="color:#75715e"> */</span>
+GTID(11, 12),
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * &lt;code&gt;XACOMMIT = 13;&lt;/code&gt;
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * &lt;pre&gt;
+</span><span style="color:#75715e"> * * XA *
+</span><span style="color:#75715e"> * &lt;/pre&gt;
+</span><span style="color:#75715e"> */</span>
+XACOMMIT(12, 13),
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * &lt;code&gt;XAROLLBACK = 14;&lt;/code&gt;
+</span><span style="color:#75715e"> */</span>
+XAROLLBACK(13, 14),
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * &lt;code&gt;MHEARTBEAT = 15;&lt;/code&gt;
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * &lt;pre&gt;
+</span><span style="color:#75715e"> * * MASTER HEARTBEAT *
+</span><span style="color:#75715e"> * &lt;/pre&gt;
+</span><span style="color:#75715e"> */</span>
+MHEARTBEAT(14, 15),;</code></pre></div>
+<h2 id="json">JSON</h2>
+
+<h3 id="create-table-create">CREATE TABLE (CREATE)</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
+    {
+        <span style="color:#f92672">&#34;data&#34;</span>:<span style="color:#66d9ef">null</span>,
+        <span style="color:#f92672">&#34;database&#34;</span>:<span style="color:#e6db74">&#34;test&#34;</span>,
+        <span style="color:#f92672">&#34;es&#34;</span>:<span style="color:#ae81ff">1554044748000</span>,
+        <span style="color:#f92672">&#34;id&#34;</span>:<span style="color:#ae81ff">6</span>,
+        <span style="color:#f92672">&#34;isDdl&#34;</span>:<span style="color:#66d9ef">true</span>,
+        <span style="color:#f92672">&#34;mysqlType&#34;</span>:<span style="color:#66d9ef">null</span>,
+        <span style="color:#f92672">&#34;old&#34;</span>:<span style="color:#66d9ef">null</span>,
+        <span style="color:#f92672">&#34;pkNames&#34;</span>:<span style="color:#66d9ef">null</span>,
+        <span style="color:#f92672">&#34;sql&#34;</span>:<span style="color:#e6db74">&#34;CREATE TABLE `test`.`asd_copy` (
+</span><span style="color:#e6db74">`ID` int(11) NOT NULL,
+</span><span style="color:#e6db74">PRIMARY KEY (`ID`)
+</span><span style="color:#e6db74">) ENGINE=InnoDB DEFAULT CHARSET=utf8&#34;</span>,
+        <span style="color:#f92672">&#34;sqlType&#34;</span>:<span style="color:#66d9ef">null</span>,
+        <span style="color:#f92672">&#34;table&#34;</span>:<span style="color:#e6db74">&#34;asd_copy&#34;</span>,
+        <span style="color:#f92672">&#34;ts&#34;</span>:<span style="color:#ae81ff">1554044748116</span>,
+        <span style="color:#f92672">&#34;type&#34;</span>:<span style="color:#e6db74">&#34;CREATE&#34;</span>
+    }
+]</code></pre></div>
+<h3 id="insert">INSERT</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
+    {
+        <span style="color:#f92672">&#34;data&#34;</span>:[
+            {
+                <span style="color:#f92672">&#34;ID&#34;</span>:<span style="color:#e6db74">&#34;2223&#34;</span>
+            }
+        ],
+        <span style="color:#f92672">&#34;database&#34;</span>:<span style="color:#e6db74">&#34;test&#34;</span>,
+        <span style="color:#f92672">&#34;es&#34;</span>:<span style="color:#ae81ff">1554044748000</span>,
+        <span style="color:#f92672">&#34;id&#34;</span>:<span style="color:#ae81ff">6</span>,
+        <span style="color:#f92672">&#34;isDdl&#34;</span>:<span style="color:#66d9ef">false</span>,
+        <span style="color:#f92672">&#34;mysqlType&#34;</span>:{
+            <span style="color:#f92672">&#34;ID&#34;</span>:<span style="color:#e6db74">&#34;int(11)&#34;</span>
+        },
+        <span style="color:#f92672">&#34;old&#34;</span>:<span style="color:#66d9ef">null</span>,
+        <span style="color:#f92672">&#34;pkNames&#34;</span>:[
+            <span style="color:#e6db74">&#34;ID&#34;</span>
+        ],
+        <span style="color:#f92672">&#34;sql&#34;</span>:<span style="color:#e6db74">&#34;&#34;</span>,
+        <span style="color:#f92672">&#34;sqlType&#34;</span>:{
+            <span style="color:#f92672">&#34;ID&#34;</span>:<span style="color:#ae81ff">4</span>
+        },
+        <span style="color:#f92672">&#34;table&#34;</span>:<span style="color:#e6db74">&#34;asd_copy&#34;</span>,
+        <span style="color:#f92672">&#34;ts&#34;</span>:<span style="color:#ae81ff">1554044748117</span>,
+        <span style="color:#f92672">&#34;type&#34;</span>:<span style="color:#e6db74">&#34;INSERT&#34;</span>
+    }
+]</code></pre></div>
+<h3 id="update">UPDATE</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
+    {
+        <span style="color:#f92672">&#34;data&#34;</span>:[
+            {
+                <span style="color:#f92672">&#34;ID&#34;</span>:<span style="color:#e6db74">&#34;222&#34;</span>
+            }
+        ],
+        <span style="color:#f92672">&#34;database&#34;</span>:<span style="color:#e6db74">&#34;test&#34;</span>,
+        <span style="color:#f92672">&#34;es&#34;</span>:<span style="color:#ae81ff">1554044876000</span>,
+        <span style="color:#f92672">&#34;id&#34;</span>:<span style="color:#ae81ff">7</span>,
+        <span style="color:#f92672">&#34;isDdl&#34;</span>:<span style="color:#66d9ef">false</span>,
+        <span style="color:#f92672">&#34;mysqlType&#34;</span>:{
+            <span style="color:#f92672">&#34;ID&#34;</span>:<span style="color:#e6db74">&#34;int(11)&#34;</span>
+        },
+        <span style="color:#f92672">&#34;old&#34;</span>:[
+            {
+                <span style="color:#f92672">&#34;ID&#34;</span>:<span style="color:#e6db74">&#34;2223&#34;</span>
+            }
+        ],
+        <span style="color:#f92672">&#34;pkNames&#34;</span>:[
+            <span style="color:#e6db74">&#34;ID&#34;</span>
+        ],
+        <span style="color:#f92672">&#34;sql&#34;</span>:<span style="color:#e6db74">&#34;&#34;</span>,
+        <span style="color:#f92672">&#34;sqlType&#34;</span>:{
+            <span style="color:#f92672">&#34;ID&#34;</span>:<span style="color:#ae81ff">4</span>
+        },
+        <span style="color:#f92672">&#34;table&#34;</span>:<span style="color:#e6db74">&#34;asd&#34;</span>,
+        <span style="color:#f92672">&#34;ts&#34;</span>:<span style="color:#ae81ff">1554044877622</span>,
+        <span style="color:#f92672">&#34;type&#34;</span>:<span style="color:#e6db74">&#34;UPDATE&#34;</span>
+    }
+]</code></pre></div>
+<h3 id="delete">DELETE</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
+    {
+        <span style="color:#f92672">&#34;data&#34;</span>:[
+            {
+                <span style="color:#f92672">&#34;ID&#34;</span>:<span style="color:#e6db74">&#34;222&#34;</span>
+            }
+        ],
+        <span style="color:#f92672">&#34;database&#34;</span>:<span style="color:#e6db74">&#34;test&#34;</span>,
+        <span style="color:#f92672">&#34;es&#34;</span>:<span style="color:#ae81ff">1554044940000</span>,
+        <span style="color:#f92672">&#34;id&#34;</span>:<span style="color:#ae81ff">8</span>,
+        <span style="color:#f92672">&#34;isDdl&#34;</span>:<span style="color:#66d9ef">false</span>,
+        <span style="color:#f92672">&#34;mysqlType&#34;</span>:{
+            <span style="color:#f92672">&#34;ID&#34;</span>:<span style="color:#e6db74">&#34;int(11)&#34;</span>
+        },
+        <span style="color:#f92672">&#34;old&#34;</span>:<span style="color:#66d9ef">null</span>,
+        <span style="color:#f92672">&#34;pkNames&#34;</span>:[
+            <span style="color:#e6db74">&#34;ID&#34;</span>
+        ],
+        <span style="color:#f92672">&#34;sql&#34;</span>:<span style="color:#e6db74">&#34;&#34;</span>,
+        <span style="color:#f92672">&#34;sqlType&#34;</span>:{
+            <span style="color:#f92672">&#34;ID&#34;</span>:<span style="color:#ae81ff">4</span>
+        },
+        <span style="color:#f92672">&#34;table&#34;</span>:<span style="color:#e6db74">&#34;asd&#34;</span>,
+        <span style="color:#f92672">&#34;ts&#34;</span>:<span style="color:#ae81ff">1554044940882</span>,
+        <span style="color:#f92672">&#34;type&#34;</span>:<span style="color:#e6db74">&#34;DELETE&#34;</span>
+    }
+]</code></pre></div>
+<h3 id="alter-table-cindex">ALTER TABLE (CINDEX)</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
+    {
+        <span style="color:#f92672">&#34;ts&#34;</span>:<span style="color:#ae81ff">1554041367827</span>,
+        <span style="color:#f92672">&#34;database&#34;</span>:<span style="color:#e6db74">&#34;test&#34;</span>,
+        <span style="color:#f92672">&#34;id&#34;</span>:<span style="color:#ae81ff">5</span>,
+        <span style="color:#f92672">&#34;isDdl&#34;</span>:<span style="color:#66d9ef">true</span>,
+        <span style="color:#f92672">&#34;sql&#34;</span>:<span style="color:#e6db74">&#34;ALTER TABLE `test`.`asd` ADD PRIMARY KEY (`ID`)&#34;</span>,
+        <span style="color:#f92672">&#34;table&#34;</span>:<span style="color:#e6db74">&#34;asd&#34;</span>,
+        <span style="color:#f92672">&#34;type&#34;</span>:<span style="color:#e6db74">&#34;CINDEX&#34;</span>
+        <span style="color:#e6db74">&#34;es&#34;</span>:<span style="color:#ae81ff">1554041367000</span>,
+    }
+]</code></pre></div>
+<h3 id="drop-table-erase">DROP TABLE (ERASE)</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
+    {
+        <span style="color:#f92672">&#34;data&#34;</span>:<span style="color:#66d9ef">null</span>,
+        <span style="color:#f92672">&#34;database&#34;</span>:<span style="color:#e6db74">&#34;test&#34;</span>,
+        <span style="color:#f92672">&#34;es&#34;</span>:<span style="color:#ae81ff">1554045030000</span>,
+        <span style="color:#f92672">&#34;id&#34;</span>:<span style="color:#ae81ff">9</span>,
+        <span style="color:#f92672">&#34;isDdl&#34;</span>:<span style="color:#66d9ef">true</span>,
+        <span style="color:#f92672">&#34;mysqlType&#34;</span>:<span style="color:#66d9ef">null</span>,
+        <span style="color:#f92672">&#34;old&#34;</span>:<span style="color:#66d9ef">null</span>,
+        <span style="color:#f92672">&#34;pkNames&#34;</span>:<span style="color:#66d9ef">null</span>,
+        <span style="color:#f92672">&#34;sql&#34;</span>:<span style="color:#e6db74">&#34;DROP TABLE `asd` /* generated by server */&#34;</span>,
+        <span style="color:#f92672">&#34;sqlType&#34;</span>:<span style="color:#66d9ef">null</span>,
+        <span style="color:#f92672">&#34;table&#34;</span>:<span style="color:#e6db74">&#34;asd&#34;</span>,
+        <span style="color:#f92672">&#34;ts&#34;</span>:<span style="color:#ae81ff">1554045031258</span>,
+        <span style="color:#f92672">&#34;type&#34;</span>:<span style="color:#e6db74">&#34;ERASE&#34;</span>
+    }
+]</code></pre></div>
+<h3 id="alter-table-rename">ALTER TABLE (RENAME)</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
+    {
+        <span style="color:#f92672">&#34;database&#34;</span>:<span style="color:#e6db74">&#34;test&#34;</span>,
+        <span style="color:#f92672">&#34;es&#34;</span>:<span style="color:#ae81ff">1554045087000</span>,
+        <span style="color:#f92672">&#34;id&#34;</span>:<span style="color:#ae81ff">10</span>,
+        <span style="color:#f92672">&#34;isDdl&#34;</span>:<span style="color:#66d9ef">true</span>,
+        <span style="color:#f92672">&#34;sql&#34;</span>:<span style="color:#e6db74">&#34;alter table `asd_copy` rename to `asd`&#34;</span>,
+        <span style="color:#f92672">&#34;table&#34;</span>:<span style="color:#e6db74">&#34;asd&#34;</span>,
+        <span style="color:#f92672">&#34;ts&#34;</span>:<span style="color:#ae81ff">1554045087466</span>,
+        <span style="color:#f92672">&#34;type&#34;</span>:<span style="color:#e6db74">&#34;RENAME&#34;</span>
+    }
+]</code></pre></div>
+<h3 id="alter-table-alter">ALTER TABLE (ALTER)</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
+    {
+        <span style="color:#f92672">&#34;database&#34;</span>:<span style="color:#e6db74">&#34;test&#34;</span>,
+        <span style="color:#f92672">&#34;es&#34;</span>:<span style="color:#ae81ff">1554045155000</span>,
+        <span style="color:#f92672">&#34;id&#34;</span>:<span style="color:#ae81ff">11</span>,
+        <span style="color:#f92672">&#34;isDdl&#34;</span>:<span style="color:#66d9ef">true</span>,
+        <span style="color:#f92672">&#34;sql&#34;</span>:<span style="color:#e6db74">&#34;ALTER TABLE `test`.`asd` ADD COLUMN `TEST_NAME` varchar(255) AFTER `ID`&#34;</span>,
+        <span style="color:#f92672">&#34;table&#34;</span>:<span style="color:#e6db74">&#34;asd&#34;</span>,
+        <span style="color:#f92672">&#34;ts&#34;</span>:<span style="color:#ae81ff">1554045155706</span>,
+        <span style="color:#f92672">&#34;type&#34;</span>:<span style="color:#e6db74">&#34;ALTER&#34;</span>
+    }
+]</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
+    {
+        <span style="color:#f92672">&#34;database&#34;</span>:<span style="color:#e6db74">&#34;test&#34;</span>,
+        <span style="color:#f92672">&#34;es&#34;</span>:<span style="color:#ae81ff">1554045230000</span>,
+        <span style="color:#f92672">&#34;id&#34;</span>:<span style="color:#ae81ff">12</span>,
+        <span style="color:#f92672">&#34;isDdl&#34;</span>:<span style="color:#66d9ef">true</span>,
+        <span style="color:#f92672">&#34;sql&#34;</span>:<span style="color:#e6db74">&#34;ALTER TABLE `test`.`asd` DROP COLUMN `TEST_NAME`&#34;</span>,
+        <span style="color:#f92672">&#34;table&#34;</span>:<span style="color:#e6db74">&#34;asd&#34;</span>,
+        <span style="color:#f92672">&#34;ts&#34;</span>:<span style="color:#ae81ff">1554045230994</span>,
+        <span style="color:#f92672">&#34;type&#34;</span>:<span style="color:#e6db74">&#34;ALTER&#34;</span>
+    }
+]</code></pre></div>
+<h3 id="更新多行">更新多行</h3>
+
+<pre><code>[
+    {
+        &quot;data&quot;:[
+            {
+                &quot;ID&quot;:&quot;22&quot;,
+                &quot;TEST_NAME&quot;:&quot;123&quot;
+            },
+            {
+                &quot;ID&quot;:&quot;2223&quot;,
+                &quot;TEST_NAME&quot;:&quot;123&quot;
+            }
+        ],
+        &quot;database&quot;:&quot;test&quot;,
+        &quot;es&quot;:1554045359000,
+        &quot;id&quot;:15,
+        &quot;isDdl&quot;:false,
+        &quot;mysqlType&quot;:{
+            &quot;ID&quot;:&quot;int(11)&quot;,
+            &quot;TEST_NAME&quot;:&quot;varchar(255)&quot;
+        },
+        &quot;old&quot;:[
+            {
+                &quot;TEST_NAME&quot;:null
+            },
+            {
+                &quot;TEST_NAME&quot;:null
+            }
+        ],
+        &quot;pkNames&quot;:[
+            &quot;ID&quot;,
+            &quot;ID&quot;
+        ],
+        &quot;sql&quot;:&quot;&quot;,
+        &quot;sqlType&quot;:{
+            &quot;ID&quot;:4,
+            &quot;TEST_NAME&quot;:12
+        },
+        &quot;table&quot;:&quot;asd&quot;,
+        &quot;ts&quot;:1554045360514,
+        &quot;type&quot;:&quot;UPDATE&quot;
+    }
+]
+</code></pre>
+
+<h3 id="删除多行">删除多行</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
+    {
+        <span style="color:#f92672">&#34;data&#34;</span>:[
+            {
+                <span style="color:#f92672">&#34;ID&#34;</span>:<span style="color:#e6db74">&#34;22&#34;</span>,
+                <span style="color:#f92672">&#34;TEST_NAME&#34;</span>:<span style="color:#e6db74">&#34;123&#34;</span>
+            },
+            {
+                <span style="color:#f92672">&#34;ID&#34;</span>:<span style="color:#e6db74">&#34;2223&#34;</span>,
+                <span style="color:#f92672">&#34;TEST_NAME&#34;</span>:<span style="color:#e6db74">&#34;123&#34;</span>
+            }
+        ],
+        <span style="color:#f92672">&#34;database&#34;</span>:<span style="color:#e6db74">&#34;test&#34;</span>,
+        <span style="color:#f92672">&#34;es&#34;</span>:<span style="color:#ae81ff">1554045542000</span>,
+        <span style="color:#f92672">&#34;id&#34;</span>:<span style="color:#ae81ff">16</span>,
+        <span style="color:#f92672">&#34;isDdl&#34;</span>:<span style="color:#66d9ef">false</span>,
+        <span style="color:#f92672">&#34;mysqlType&#34;</span>:{
+            <span style="color:#f92672">&#34;ID&#34;</span>:<span style="color:#e6db74">&#34;int(11)&#34;</span>,
+            <span style="color:#f92672">&#34;TEST_NAME&#34;</span>:<span style="color:#e6db74">&#34;varchar(255)&#34;</span>
+        },
+        <span style="color:#f92672">&#34;old&#34;</span>:<span style="color:#66d9ef">null</span>,
+        <span style="color:#f92672">&#34;pkNames&#34;</span>:[
+            <span style="color:#e6db74">&#34;ID&#34;</span>,
+            <span style="color:#e6db74">&#34;ID&#34;</span>
+        ],
+        <span style="color:#f92672">&#34;sql&#34;</span>:<span style="color:#e6db74">&#34;&#34;</span>,
+        <span style="color:#f92672">&#34;sqlType&#34;</span>:{
+            <span style="color:#f92672">&#34;ID&#34;</span>:<span style="color:#ae81ff">4</span>,
+            <span style="color:#f92672">&#34;TEST_NAME&#34;</span>:<span style="color:#ae81ff">12</span>
+        },
+        <span style="color:#f92672">&#34;table&#34;</span>:<span style="color:#e6db74">&#34;asd&#34;</span>,
+        <span style="color:#f92672">&#34;ts&#34;</span>:<span style="color:#ae81ff">1554045543209</span>,
+        <span style="color:#f92672">&#34;type&#34;</span>:<span style="color:#e6db74">&#34;DELETE&#34;</span>
+    }
+]</code></pre></div></article>
+
+      
+<div class="book-footer justify-end">
+  
+  
+  <div>
+    <a href="https://github.com/hello-world-example/MySQL/edit/master/HuGo/content/docs/canal/data-type.md" target="_blank" rel="noopener">
+      <img src="/MySQL/svg/edit.svg" alt="Edit" /> Edit this page
+    </a>
+  </div>
+  
+</div>
+
+
+      
+    </div>
+
+    
+  
+
+  <aside class="book-toc level-3 fixed">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#数据格式">数据格式</a>
+<ul>
+<li><a href="#flatmessage-message">FlatMessage - Message</a></li>
+<li><a href="#canalentry-entrytype">CanalEntry.EntryType</a></li>
+<li><a href="#canalentry-eventtype">CanalEntry.EventType</a></li>
+<li><a href="#json">JSON</a>
+<ul>
+<li><a href="#create-table-create">CREATE TABLE (CREATE)</a></li>
+<li><a href="#insert">INSERT</a></li>
+<li><a href="#update">UPDATE</a></li>
+<li><a href="#delete">DELETE</a></li>
+<li><a href="#alter-table-cindex">ALTER TABLE (CINDEX)</a></li>
+<li><a href="#drop-table-erase">DROP TABLE (ERASE)</a></li>
+<li><a href="#alter-table-rename">ALTER TABLE (RENAME)</a></li>
+<li><a href="#alter-table-alter">ALTER TABLE (ALTER)</a></li>
+<li><a href="#更新多行">更新多行</a></li>
+<li><a href="#删除多行">删除多行</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </aside>
+
+
+
+  </main>
+  
+  
+  
+</body>
+
+</html>

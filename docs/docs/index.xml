@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Docs on MySQL</title>
+    <link>https://hello-world-example.github.io/MySQL/docs/</link>
+    <description>Recent content in Docs on MySQL</description>
+    <generator>Hugo -- gohugo.io</generator>
+    
+	<atom:link href="https://hello-world-example.github.io/MySQL/docs/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/MySQL/docs/Binlog/binlog-protocol/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/MySQL/docs/Binlog/binlog-protocol/</guid>
+      <description> binlog 协议 开源 binlog 解析方案  阿里巴巴 alibaba/canal 大众点评 dianping/puma shyiko/mysql-binlog-connector-java alchemystar/Aroundight  Read More  14.9 Replication Protocol
+ Chapter 19 Replication
+ Chapter 20 The Binary Log
+  </description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/MySQL/docs/Binlog/Gtid/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/MySQL/docs/Binlog/Gtid/</guid>
+      <description>GTID GTID (Global Transaction ID) 是 MySQL5.6 引入的功能，可以在集群全局范围标识事务，用于取代过去通过binlog 文件偏移量定位复制位置的传统方式。
+借助GTID，在发生主备切换的情况下，MySQL的其它Slave可以自动在新主上找到正确的复制位置，这大大简化了复杂复制拓扑下集群的维护，也减少了人为设置复制位置发生误操作的风险。另外，基于GTID的复制可以忽略已经执行过的事务，减少了数据发生不一致的风险。
+GTID虽好，要想运用自如还需充分了解其原理与特性，特别要注意与传统的基于binlog文件偏移量复制方式不一样的地方。
+GTID长什么样 根据官方文档定义，GTID由 source_id 加 transaction_id 构成。
+GTID = source_id:transaction_id  上面的 source_id 指示发起事务的 MySQL 实例，值为该实例的 server_uuid。server_uuid 由MySQL在第一次启动时自动生成并被持久化到 auto.cnf 文件里，transaction_id 是MySQL实例上执行的事务序号，从 1 开始递增。 例如：
+e6954592-8dba-11e6-af0e-fa163e1cf111:1  一组连续的事务可以用 &#39;-&#39; 连接的事务序号范围表示。例如
+e6954592-8dba-11e6-af0e-fa163e1cf111:1-5  更一般的情况是GTID的集合。GTID集合可以包含来自多个 source_id 的事务，它们之间用逗号分隔；如果来自同一 source_id 的事务序号有多个范围区间，各组范围之间用冒号分隔，例如：
+e6954592-8dba-11e6-af0e-fa163e1cf111:1-5:11-18,e6954592-8dba-11e6-af0e-fa163e1cf3f2:1-27  GTID集合拥有如下的形式定义：
+gtid_set: uuid_set [, uuid_set] ... | &amp;#39;&amp;#39; uuid_set: uuid:interval[:interval]... uuid: hhhhhhhh-hhhh-hhhh-hhhh-hhhhhhhhhhhh h: [0-9|A-F] interval: n[-n] (n &amp;gt;= 1) 如何查看GTID 可以通过MySQL的几个变量查看相关的GTID信息。</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/MySQL/docs/Binlog/parse-binlog-by-canal/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/MySQL/docs/Binlog/parse-binlog-by-canal/</guid>
+      <description>Canal 订阅 binlog 安装 Canal $ git clone https://github.com/alibaba/canal.git $ cd canal # 编译打包 $ mvn clean install -Dmaven.test.skip -Denv=release # $ cd target $ mkdir /opt/websuite/canal.deployer $ cp canal.deployer-1.1.3-SNAPSHOT.tar.gz /opt/websuite/canal.deployer/ $ cd /opt/websuite/canal.deployer $ tar zxvf canal.deployer-1.1.3-SNAPSHOT.tar.gz $ tree conf/ conf/ ├── canal.properties ├── example │ └── instance.properties ├── logback.xml ├── metrics │ └── Canal_instances_tmpl.json └── spring ├── base-instance.xml ├── default-instance.xml ├── file-instance.xml ├── group-instance.xml ├── memory-instance.xml └── tsdb ├── h2-tsdb.</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/MySQL/docs/Binlog/parse-binlog-by-java/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/MySQL/docs/Binlog/parse-binlog-by-java/</guid>
+      <description> Java 解析 binlog Read More  mysql binlog系列（二）&amp;mdash;-java解析binlog
+官方文档 Chapter 20 The Binary Log
+ </description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/MySQL/docs/Binlog/Quick-Start/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/MySQL/docs/Binlog/Quick-Start/</guid>
+      <description>快速入门 binlog，即二进制日志，它记录了数据库上的所有改变，并以二进制的形式保存在磁盘中；
+可以用来查看数据库的 变更历史、增量备份和恢复、主从复制 等
+三种格式  Statement ： 基于SQL语句的复制(statement-based replication,SBR)  会修改数据的 SQL 都会记录， 优点：不记录每一行的变化，减少了 binlog 日志量，节约了IO，提高性能 缺点：由于记录的只是执行语句，有些函数 slave 与 master 上执行结果可能不一致  Row ：基于行的复制(row-based replication,RBR)  保存所有被修改的记录内容 优点：清楚的记录下每一行数据修改的细节，不会出 Statement 主从执行不一致的情况 缺点：记录 SQL 执行的所有行的变更，日志相对会大很多  Mixed ：混合模式复制(mixed-based replication,MBR)  Statement 与 Row 的结合 一般的语句修改使用statment格式保存binlog，如一些函数，statement无法完成主从复制的操作，则采用row格式保存binlog，MySQL会根据执行的每一条具体的sql语句来区分对待记录的日志形式   查看现有配置 mysql&amp;gt; show variables like &amp;#39;binlog_format&amp;#39;; +---------------+-----------+ | Variable_name | Value | +---------------+-----------+ | binlog_format | STATEMENT | +---------------+-----------+ 查看是否开启binlog mysql&amp;gt; show variables like &amp;#39;log_bin&amp;#39;; +---------------+-------+ | Variable_name | Value | +---------------+-------+ | log_bin | OFF | +---------------+-------+ 查看 my.</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/MySQL/docs/canal/adater/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/MySQL/docs/canal/adater/</guid>
+      <description>adater模块简介 功能简介 adater模块是canal模块实现的由mysql的binlog转储其他第三方的模块，其中包含es，hbase，rdb
+rdb介绍  进入client-adater模块中，进入rdb模块，进入test包，进入sync包下的OracleSyncTest的类中 看到有RdbAdapter的属性，它的主要功能就是将订阅到的数据转储到其他类型的数据库中，在本次案例中是oracle RdbAdapter实现OuterAdapter，OuterAdapter是数据转换的通用接口，输入的参数是Dml类的对象，包含本次转换需要的信息 在前面的例子中，我们知道接受到的数据是Message类的对象，这是在launcher模块中进行了转化  adater.launcher模块介绍  打开AbstractCanalAdapterWorker类，在writeOut方法中能够看到使用MessageUtil.parse4Dml方法将message转换成Dml对象  Read More 谈谈对Canal（ 增量数据订阅与消费 ）的理解</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/MySQL/docs/canal/data-type/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/MySQL/docs/canal/data-type/</guid>
+      <description>数据格式 FlatMessage - Message  com.alibaba.otter.canal.common.MQMessageUtils  messageConverter() 将Message转换为FlatMessage  com.alibaba.otter.canal.protocol.FlatMessage com.alibaba.otter.canal.protocol.Message
+ List&amp;lt;CanalEntry.Entry&amp;gt; entrys = message.getEntries();
+ CanalEntry.RowChange rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
+ CanalEntry.EventType eventType = rowChange.getEventType();
+ for (CanalEntry.RowData rowData : rowChange.getRowDatasList())
+ List&amp;lt;CanalEntry.Column&amp;gt; columns = rowData.getBeforeColumnsList();
+ List&amp;lt;CanalEntry.Column&amp;gt; columns = rowData.getAfterColumnsList();
+       FlatMessage Message      long id message.getId()    String database entry.getHeader().getSchemaName() 数据库名   String table entry.</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/MySQL/docs/canal/introduce/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/MySQL/docs/canal/introduce/</guid>
+      <description>canal简介 canal介绍 Canal是阿里巴巴的开源软件，它主要是一个应用和mysql之间的数据同步中间件。类似Mq等这样的消息中间件，但他不需要借助其他的系统发消息，他是直接监听Mysql数据库，它伪装成mysql的从库通过对binlog日志的解析从而实现了数据库增删改查的监听
+主要的业务场景  数据库备份 搜索引擎索引更新&amp;amp;建立 业务缓存的更新 充当消息组件（订单变更，商品资料变更等）  工作原理  canal模拟mysql slave的交互协议，伪装自己为mysql slave，向mysql master发送dump协议 ​mysql master收到dump请求，开始推送binary log给slave(也就是canal) canal解析binary log对象(原始为byte流)  Canal环境部署  安装canal
+方式一 $ git clone https://github.com/alibaba/canal.git $ cd canal # 编译打包 $ mvn clean install -Dmaven.test.skip -Denv=release # ${项目路径}是你本地项目路径，下面的目录就是操作的主目录 $ cd target $ mkdir deployer $ tar -xf canal.deployer-1.1.3.tar.gz -C deployer $ mkdir adapter $ tar -xf canal.adapter-1.1.3.tar.gz -C adapter $ mkdir example $ tar -xf canal.</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/MySQL/docs/deploy/deploy/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/MySQL/docs/deploy/deploy/</guid>
+      <description>giraffe部署方案 ###同步表结构
+ 可以通过数据部门将数据结构和数据进行同步，并获取binglog的文件和position 可以通过一下方式自己生成数据结构和数据
+ 使用mysql2pgsql生成表结构，使用./mysql2pgsql -d命令
+ 将以下特殊数据类型替换
+  | int unsigned | BIGINT | | &amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash; | &amp;mdash;&amp;mdash;&amp;mdash;&amp;ndash; | | tinyint unsigned | INT | | smallint unsigned | INT | | mediumint unsigned | INT | | bigint unsigned | DECIMAL | | float unsigned | DECIMAL | | double unsigned | DECIMAL | | tinyint | INT | | mediumint | INT | | int | BIGINT | | tinyblob | TEXT | | tinytext | TEXT | | blob | TEXT | | text | TEXT | | mediumblob | TEXT | | mediumtext | TEXT | | longblob | TEXT | | longtext | TEXT | | bit | TEXT | | datetime | TIMESTAMP | | timestamp | TIMESTAMP | | float | DECIMAL | | double | DECIMAL | | year | INT | | time | VARCHAR(50) |</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/MySQL/docs/exception/exception/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/MySQL/docs/exception/exception/</guid>
+      <description> 消费失败通知方案  当消费失败回滚时，进行通知，代码如下
+private void rollback(MessageConsumer.ConsumeResult consumeResult, Message message) { if (connector != null &amp;amp;&amp;amp; message != null) { connector.rollback(message.getId()); } stop(consumeResult.getErrorDataDml()); } /** * 设置条件停止 */ public void stop(DataDml dataDml) { running = Boolean.FALSE; warning.warning(dataDml); }  warning是一个接口，DataDml是通知的数据，通知方案暂时只有邮件通知
+ 邮件通知内容，集成邮件，参考Spring Boot中使用JavaMailSender发送邮件
+拉取的canal server的ip 拉取的canal server的端口 拉取的canal server的用户 拉取的canal server的密码 拉取的canal server的destination 拉取的batchId 拉取失败的sql 拉取失败的时间  有以下原因会导致消费失败
+1. 程序bug不能解析canal传递过来的sql 解决方案：解决bug，并重新上线并消费 2. canal server或者是destination的配置文件配置错误 解决方案：检查canal server和destination的配置文件，并配置正确 3. 消费成功，但是提交消费成功时，网络出错，导致postgresql实际已消费成功，但是canal 却消费失败？   </description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/MySQL/docs/Install/Mac-Multiple-Instance/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/MySQL/docs/Install/Mac-Multiple-Instance/</guid>
+      <description>MAC 多实例安装 和 主从配置 如果已经安装 MySQL 查看安装路径在哪 # 查看 mysqld 所在目录 $ which mysqld /usr/local/bin/mysqld # 查看真实路径 $ ll /usr/local/bin/mysqld lrwxr-xr-x ... /usr/local/bin/mysqld -&amp;gt; ../Cellar/mysql/5.7.17/bin/mysqld $ cd /usr/local/Cellar/mysql/5.7.17/ $ pwd /usr/local/Cellar/mysql/5.7.17 启动多实例 # 创建两个目录 $ mkdir -p /opt/mysql_3307 $ mkdir -p /opt/mysql_3308 $ vim /opt/mysql_3307/my.cnf # 内容如下 [mysqld] basedir = /opt/mysql_3307 datadir = /opt/mysql_3307/data port = 3307 server_id = 1 socket = /opt/mysql_3307/mysql.sock $ vim /opt/mysql_3308/my.cnf # 内容如下 [mysqld] basedir = /opt/mysql_3308 datadir = /opt/mysql_3308/data port = 3308 server_id = 2 socket = /opt/mysql_3308/mysql.</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/MySQL/docs/Jdbc/FetchSize/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/MySQL/docs/Jdbc/FetchSize/</guid>
+      <description>FetchSize 处理大结果集 在数据导出的时候，MySQL 驱动 默认的 ResultSet 实现，会一次性把所有的结果加载到内存中，如果查询结果集特别大， 可能会 OOM，常见的避免方式有：
+ limit 分页导出，但是这种方式越到后面，效率越低，因为每次导出都要从 0 开始，跳过所有已导出的数据 根据主键从上次导出的最后一个位置开始导出，如：SELECT * FROM TABLE WHERE PK &amp;gt; xxx LIMIT x，但是这种方式在联合主键的情况下可能会有问题，操作起来比较麻烦  这里主要介绍，使用 FetchSize 的方式进行导出，每次拉取指定量的数据进行处理，避免 OOM，直到所有数据拉取完毕。
+ 注意：直接设置 statement.setFetchSize(100) 是不起作用的，还是会出现 OOM
+ 如何设置 正确使用 FetchSize（推荐） final Statement statement = connection.createStatement( ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY ); // 必须是 Integer.MIN_VALUE statement.setFetchSize(Integer.MIN_VALUE); 或者
+statement = connection.prepareStatement(sql); // 必须是 Integer.MIN_VALUE statement.setFetchSize(Integer.MIN_VALUE);  &amp;gt; // @see com.mysql.jdbc.ConnectionImpl &amp;gt; public java.sql.PreparedStatement prepareStatement(String sql) throws SQLException { &amp;gt; return prepareStatement(sql, DEFAULT_RESULT_SET_TYPE, DEFAULT_RESULT_SET_CONCURRENCY); &amp;gt; } &amp;gt; ``` &amp;gt; &amp;gt; - `com.</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/MySQL/docs/production/production/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/MySQL/docs/production/production/</guid>
+      <description>giraffe项目介绍 功能介绍 giraffe主要是通过canal定制mysql的数据，拿到数据后同步到其他的数据源，现在主要是同步到postgresql中。
+模块介绍 giraffe主要是分为三个模块，giraffe-launcher，giraffe-adapter，giraffe-test
+ giraffe-launcher负责的功能如下：  启动项目 拉取canal的源数据 将源数据解析成自定义的公用数据，用于各个消费方进行订阅 调用接口方法消费公用数据 控制消费方的确认与回滚 控制拉取canal数据的频率，开启/关闭拉取源数据  giraffe-adapter负责的功能如下：  giraffe-adapter分为两个模块，giraffe-adapter-common，giraffe-adapter-postgres giraffe-adapter-common负责公用工具类的实现，例如，并发工具，消费通用接口，消费通用格式，数据库通用接口，通用异常 giraffe-adapter-postgres主要负责实现giraffe-adapter-common的通用接口，解析insert，update，delete，alter，create table，create database，drop database，drop table，rename table这几种类型的语句到postgres中去   基础框架介绍 giraffe使用了以下基础框架
+ spring boot：创建独立的Spring应用程序，快速提供restapi服务 commons-dbutils：提供操作数据库的能力，集成快速，api简单 druid：提供数据源的能力，提供解析sql的能力 freemarker：提供结构化sql的能力，只需要传递固定参数，就能生成sql，无需自己拼接 ognl：提供快速获取对象任意属性和方法的能力，快速简单  项目调用流程 使用作图软件，打开giraffe.xml文件，可进行修改
+公用接口介绍  WrappedMessage：通过canal源数据后，转化而成的通用格式，有如下内容  List，TransactionDmls是包含一个事务的所有数据，一个TransactionDmls包含如下数据  List，一条DataDml是一条数据  batchId：本次拉取的id  MessageConsumer：通用的消费接口，参数是WrappedMessage，以后添加其他消费方，就实现此接口，并在MessageProvider进行注入即可 ConsumeStrategy：消费的策略接口，可能有不同的消费方式，所以可能会注入不同的消费策略，而且可以在MessageConsumer的实现类中，其他不同的方法，类似代理模式，让ConsumeStrategy更加专注于消费功能的实现 DataDmlHandler：将每一条DataDml的转换成sql，在PostgresDataDmlHandler实现类下，转换成postgres数据库类型的List,源数据虽然只有一条，但是转换时可能有多条语句 DbService：执行批量的sql，建议在实现类中，实现事务的控制  使用到的设计模式  策略模式，使用场景在消费者中提供一个策略的接口，实际的策略由调用方进行控制，消费者相当于是context  restapi介绍    api 访问格式 描述     http://localhost:8080/getRunning post 获取当前拉取的线程是否还在运行   http://localhost:8080/run post 运行任务   http://localhost:8080/stop post 停止任务    扩展阅读  OGNL 语言介绍与实践</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/MySQL/docs/rds_dbsync/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/MySQL/docs/rds_dbsync/</guid>
+      <description>rds_dbsync 非 Linux环境下如何使用 MAC 下无法执行编译好的可执行文件，可以通过 Docker 运行
+$ docker pull centos # 运行 $ docker run -t -d --net=host --name=centos centos # 进入容器 $ docker exec -it centos bash [docker]$ yum update [docker]$ yum install wget [docker]$ yum install vim [docker]$ cd ~ [docker]$ wget https://github.com/aliyun/rds_dbsync/files/919279/mysql2pgsql.bin.el6.20170413.tar.gz [docker]$ tar zxvf mysql2pgsql.bin.el6.20170413.tar.gz [docker]$ cd /root/mysql2pgsql.bin.el6.20170413/bin # 运行 [docker]$ ./mysql2pgsql -d   如何设置PostgreSQL远程访问   修改配置文件 [src.mysql] host = &amp;#34;192.168.1.6&amp;#34; port = &amp;#34;3307&amp;#34; user = &amp;#34;kail&amp;#34; password = &amp;#34;1723&amp;#34; db = &amp;#34;test&amp;#34; .</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/MySQL/docs/TD/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/MySQL/docs/TD/</guid>
+      <description>TODO 待整理 - MySQL optimizer_trace - MySQL PROFILE - MySQL EXPLAIN - 使用 MySQL Connector/MXJ 在 Java 中嵌入 MySQL 进行测试 - 解压版MySQL 安装</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/MySQL/docs/type_conversion/type-conversion/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/MySQL/docs/type_conversion/type-conversion/</guid>
+      <description> mysql postgresql 数据类型转换  PostgreSQL MySQL 数据类型映射
+ ddl转换java工具
+  </description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/MySQL/docs/validation/validation/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/MySQL/docs/validation/validation/</guid>
+      <description> 数据校验 数据库校验  mysql查询出所有的数据库(select * from information_schema.SCHEMATA where schema_name not in (information_schema,mysql,performance_schema,sys))，postgresql查询出所有的schema(select * from information_schema.schemata) 查询mysql数据库中的所有表(select * from information_schema.TABLES where table_schema=xxx)，查询postgres下所有schema的所有表数据(select * from pg_tables) 查询出mysql的表结构数据和postgres的表结构数据 对比表结构数据，对于不一致的数据发送邮件通知，集成邮件，参考Spring Boot中使用JavaMailSender发送邮件  数据校验  数据校验在于数据的生产者和消费者速度一致才能进行有效校验 数据校验的task是每60s运行一次
+ 全量数据
+ 校验表数据量的大小，如果差别不大(由于查询时，mysql可能会插入数据，以及网络延迟，所以只能看一个大概)  增量数据校验
+ 取当前时间-10s&amp;lt;修改时间&amp;lt;当前时间-70s的时间段 将分别从mysql和postgres中取得数据，转化成对象 对两个list中的数据进行比较 将两者不同的数据，通过邮件进行通知，集成邮件，参考Spring Boot中使用JavaMailSender发送邮件     mysql系统简介
+ postgres系统表简介
+   </description>
+    </item>
+    
+  </channel>
+</rss>
