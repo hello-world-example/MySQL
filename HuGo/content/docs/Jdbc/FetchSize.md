@@ -33,16 +33,17 @@ statement.setFetchSize(Integer.MIN_VALUE);
 ```
 
 
-> ```java
-> // @see com.mysql.jdbc.ConnectionImpl
-> public java.sql.PreparedStatement prepareStatement(String sql) throws SQLException {
->   return prepareStatement(sql, DEFAULT_RESULT_SET_TYPE, DEFAULT_RESULT_SET_CONCURRENCY);
-> }
-> ```
 >
 > - `com.mysql.jdbc.ConnectionImpl`
 >   - `int DEFAULT_RESULT_SET_TYPE = ResultSet.TYPE_FORWARD_ONLY`
 >   - `int DEFAULT_RESULT_SET_CONCURRENCY = ResultSet.CONCUR_READ_ONLY`	
+
+```java
+ // @see com.mysql.jdbc.ConnectionImpl
+public java.sql.PreparedStatement prepareStatement(String sql) throws SQLException {
+	return prepareStatement(sql, DEFAULT_RESULT_SET_TYPE, DEFAULT_RESULT_SET_CONCURRENCY);
+}
+```
 
 
 
@@ -69,7 +70,7 @@ public void enableStreamingResults() throws SQLException {
 
 
 
-### 设置  JDBC 参数
+### 通过  JDBC 参数
 
 ```java
 ...&useCursorFetch=true
@@ -120,3 +121,4 @@ while (resultSet.next()) {
 - [正确使用MySQL JDBC setFetchSize()方法解决JDBC处理大结果集](https://blog.csdn.net/seven_3306/article/details/9303879)
 - [关于oracle与mysql官方jdbc的一些区别](https://blog.csdn.net/yzsind/article/details/7853029)
 - [Java不写文件，LOAD DATA LOCAL INFILE大批量导入数据到MySQL的实现](https://blog.csdn.net/seven_3306/article/details/9237495)
+

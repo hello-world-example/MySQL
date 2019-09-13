@@ -160,7 +160,7 @@ private void rollback(MessageConsumer.ConsumeResult consumeResult, Message messa
  limit 分页导出，但是这种方式越到后面，效率越低，因为每次导出都要从 0 开始，跳过所有已导出的数据 根据主键从上次导出的最后一个位置开始导出，如：SELECT * FROM TABLE WHERE PK &amp;gt; xxx LIMIT x，但是这种方式在联合主键的情况下可能会有问题，操作起来比较麻烦  这里主要介绍，使用 FetchSize 的方式进行导出，每次拉取指定量的数据进行处理，避免 OOM，直到所有数据拉取完毕。
  注意：直接设置 statement.setFetchSize(100) 是不起作用的，还是会出现 OOM
  如何设置 正确使用 FetchSize（推荐） final Statement statement = connection.createStatement( ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY ); // 必须是 Integer.MIN_VALUE statement.setFetchSize(Integer.MIN_VALUE); 或者
-statement = connection.prepareStatement(sql); // 必须是 Integer.MIN_VALUE statement.setFetchSize(Integer.MIN_VALUE);  &amp;gt; // @see com.mysql.jdbc.ConnectionImpl &amp;gt; public java.sql.PreparedStatement prepareStatement(String sql) throws SQLException { &amp;gt; return prepareStatement(sql, DEFAULT_RESULT_SET_TYPE, DEFAULT_RESULT_SET_CONCURRENCY); &amp;gt; } &amp;gt; ``` &amp;gt; &amp;gt; - `com.</description>
+statement = connection.prepareStatement(sql); // 必须是 Integer.MIN_VALUE statement.setFetchSize(Integer.MIN_VALUE);   com.mysql.jdbc.ConnectionImpl  int DEFAULT_RESULT_SET_TYPE = ResultSet.TYPE_FORWARD_ONLY int DEFAULT_RESULT_SET_CONCURRENCY = ResultSet.</description>
     </item>
     
     <item>

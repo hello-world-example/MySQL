@@ -144,76 +144,49 @@ https://github.com/alex-shpak/hugo-book
 <span style="color:#75715e">// 必须是 Integer.MIN_VALUE
 </span><span style="color:#75715e"></span>statement.<span style="color:#a6e22e">setFetchSize</span>(Integer.<span style="color:#a6e22e">MIN_VALUE</span>);</code></pre></div>
 <blockquote>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">&gt;</span> <span style="color:#75715e">// @see com.mysql.jdbc.ConnectionImpl
-</span><span style="color:#75715e"></span><span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">java</span>.<span style="color:#a6e22e">sql</span>.<span style="color:#a6e22e">PreparedStatement</span> prepareStatement(String <span style="color:#a6e22e">sql</span>) <span style="color:#66d9ef">throws</span> <span style="color:#a6e22e">SQLException</span> {
-<span style="color:#f92672">&gt;</span>   <span style="color:#66d9ef">return</span> prepareStatement(sql, DEFAULT_RESULT_SET_TYPE, DEFAULT_RESULT_SET_CONCURRENCY);
-<span style="color:#f92672">&gt;</span> }
-<span style="color:#f92672">&gt;</span> <span style="color:#960050;background-color:#1e0010">```</span>
-<span style="color:#f92672">&gt;</span>
-<span style="color:#f92672">&gt;</span> <span style="color:#f92672">-</span> <span style="color:#960050;background-color:#1e0010">`</span>com.<span style="color:#a6e22e">mysql</span>.<span style="color:#a6e22e">jdbc</span>.<span style="color:#a6e22e">ConnectionImpl</span><span style="color:#960050;background-color:#1e0010">`</span>
-<span style="color:#f92672">&gt;</span>   <span style="color:#f92672">-</span> <span style="color:#960050;background-color:#1e0010">`</span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">DEFAULT_RESULT_SET_TYPE</span> <span style="color:#f92672">=</span> ResultSet.<span style="color:#a6e22e">TYPE_FORWARD_ONLY</span><span style="color:#960050;background-color:#1e0010">`</span>
-<span style="color:#f92672">&gt;</span>   <span style="color:#f92672">-</span> <span style="color:#960050;background-color:#1e0010">`</span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">DEFAULT_RESULT_SET_CONCURRENCY</span> <span style="color:#f92672">=</span> ResultSet.<span style="color:#a6e22e">CONCUR_READ_ONLY</span><span style="color:#960050;background-color:#1e0010">`</span> 
+<ul>
+<li><code>com.mysql.jdbc.ConnectionImpl</code>
 
-
-
-<span style="color:#960050;background-color:#1e0010">###</span> 使用 <span style="color:#a6e22e">MySQL</span> 驱动原生方法</code></pre></div>
-<p>java
-statement.unwrap(com.mysql.jdbc.Statement.class).enableStreamingResults();</p>
-
-<pre><code>
-通过源码的可以看出，实际上跟第一种方式是一样
-
-</code></pre>
-
-<p>java
-// @see com.mysql.jdbc.StatementImpl
-public void enableStreamingResults() throws SQLException {
-    synchronized (checkClosed().getConnectionMutex()) {
-        this.originalResultSetType = this.resultSetType;
-        this.originalFetchSize = this.fetchSize;</p>
+<ul>
+<li><code>int DEFAULT_RESULT_SET_TYPE = ResultSet.TYPE_FORWARD_ONLY</code></li>
+<li><code>int DEFAULT_RESULT_SET_CONCURRENCY = ResultSet.CONCUR_READ_ONLY</code></li>
+</ul></li>
+</ul>
 </blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"> <span style="color:#75715e">// @see com.mysql.jdbc.ConnectionImpl
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">public</span> <span style="color:#a6e22e">java</span>.<span style="color:#a6e22e">sql</span>.<span style="color:#a6e22e">PreparedStatement</span> prepareStatement(String <span style="color:#a6e22e">sql</span>) <span style="color:#66d9ef">throws</span> <span style="color:#a6e22e">SQLException</span> {
+	<span style="color:#66d9ef">return</span> prepareStatement(sql, DEFAULT_RESULT_SET_TYPE, DEFAULT_RESULT_SET_CONCURRENCY);
+}</code></pre></div>
+<h3 id="使用-mysql-驱动原生方法">使用 MySQL 驱动原生方法</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">statement.<span style="color:#a6e22e">unwrap</span>(com.<span style="color:#a6e22e">mysql</span>.<span style="color:#a6e22e">jdbc</span>.<span style="color:#a6e22e">Statement</span>.<span style="color:#a6e22e">class</span>).<span style="color:#a6e22e">enableStreamingResults</span>();</code></pre></div>
+<p>通过源码的可以看出，实际上跟第一种方式是一样</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">// @see com.mysql.jdbc.StatementImpl
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">public</span> <span style="color:#a6e22e">void</span> enableStreamingResults() <span style="color:#66d9ef">throws</span> <span style="color:#a6e22e">SQLException</span> {
+    <span style="color:#66d9ef">synchronized</span> (checkClosed().<span style="color:#a6e22e">getConnectionMutex</span>()) {
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">originalResultSetType</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">resultSetType</span>;
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">originalFetchSize</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">fetchSize</span>;
 
-<pre><code>    setFetchSize(Integer.MIN_VALUE); // ❤
-    setResultSetType(ResultSet.TYPE_FORWARD_ONLY); // ❤
-}
-</code></pre>
+        setFetchSize(Integer.<span style="color:#a6e22e">MIN_VALUE</span>); <span style="color:#75715e">// ❤
+</span><span style="color:#75715e"></span>        setResultSetType(ResultSet.<span style="color:#a6e22e">TYPE_FORWARD_ONLY</span>); <span style="color:#75715e">// ❤
+</span><span style="color:#75715e"></span>    }
+}</code></pre></div>
+<h3 id="通过-jdbc-参数">通过  JDBC 参数</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">...<span style="color:#f92672">&amp;</span>useCursorFetch<span style="color:#f92672">=</span><span style="color:#66d9ef">true</span></code></pre></div>
+<p>且 <code>Statement 以 TYPE_FORWARD_ONLY</code> 打开，再设置 <code>fetchSize(100)</code>，表示采用服务器端游标，每次从服务器取 <code>fetchSize</code> 条数据，<strong>注意这种方式会大量占用服务器的临时空间，一般比较少用</strong></p>
 
-<p>}</p>
+<h2 id="如何使用">如何使用</h2>
 
-<pre><code>
+<p>使用方式与正常方式没有区别，但是要注意：<strong>不要把所有结果集放入内存集合，否则还是会 OOM</strong>，应该获取一部分，处理一部分，<strong>保证处理过的数据可被 JVM 回收</strong></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">// 设置 FetchSize
+</span><span style="color:#75715e"></span>statement <span style="color:#f92672">=</span> connection.<span style="color:#a6e22e">prepareStatement</span>(sql);
+statement.<span style="color:#a6e22e">setFetchSize</span>(Integer.<span style="color:#a6e22e">MIN_VALUE</span>);
 
-
-### 设置  JDBC 参数
-
-</code></pre>
-
-<p>java
-&hellip;&amp;useCursorFetch=true</p>
-
-<pre><code>
-且 `Statement 以 TYPE_FORWARD_ONLY` 打开，再设置 `fetchSize(100)`，表示采用服务器端游标，每次从服务器取 `fetchSize` 条数据，**注意这种方式会大量占用服务器的临时空间，一般比较少用**
-
-
-
-## 如何使用
-
-使用方式与正常方式没有区别，但是要注意：**不要把所有结果集放入内存集合，否则还是会 OOM**，应该获取一部分，处理一部分，**保证处理过的数据可被 JVM 回收**
-
-</code></pre>
-
-<p>java
-// 设置 FetchSize
-statement = connection.prepareStatement(sql);
-statement.setFetchSize(Integer.MIN_VALUE);</p>
-
-<p>// 使用 StreamingResult
-ResultSet resultSet = statement.executeQuery();
-// 每次获取部分数据，直到所有数据处理完才会停止，所有的操作由 JDBC 驱动实现
-while (resultSet.next()) {
-    // do something<br />
-}
-```</p>
-
+<span style="color:#75715e">// 使用 StreamingResult
+</span><span style="color:#75715e"></span>ResultSet <span style="color:#a6e22e">resultSet</span> <span style="color:#f92672">=</span> statement.<span style="color:#a6e22e">executeQuery</span>();
+<span style="color:#75715e">// 每次获取部分数据，直到所有数据处理完才会停止，所有的操作由 JDBC 驱动实现
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">while</span> (resultSet.<span style="color:#a6e22e">next</span>()) {
+    <span style="color:#75715e">// do something       
+</span><span style="color:#75715e"></span>}</code></pre></div>
 <h2 id="resultset-配置">ResultSet 配置</h2>
 
 <blockquote>
@@ -286,7 +259,14 @@ while (resultSet.next()) {
 </article>
 
       
-<div class="book-footer justify-end">
+<div class="book-footer justify-between">
+  
+  <div>
+    
+    <a href="https://github.com/hello-world-example/MySQL/commit/71ec2a7452a732175c6c2de4894addafcab396a7" title='Last modified Sep 14, 2019 by kailbin' target="_blank" rel="noopener">
+      <img src="/MySQL/svg/calendar.svg" alt="Changed" /> Sep 14, 2019
+    </a>
+  </div>
   
   
   <div>
@@ -312,7 +292,10 @@ while (resultSet.next()) {
 <li><a href="#如何设置">如何设置</a>
 <ul>
 <li><a href="#正确使用-fetchsize-推荐">正确使用 FetchSize（推荐）</a></li>
+<li><a href="#使用-mysql-驱动原生方法">使用 MySQL 驱动原生方法</a></li>
+<li><a href="#通过-jdbc-参数">通过  JDBC 参数</a></li>
 </ul></li>
+<li><a href="#如何使用">如何使用</a></li>
 <li><a href="#resultset-配置">ResultSet 配置</a></li>
 <li><a href="#read-more">Read More</a></li>
 </ul></li>
