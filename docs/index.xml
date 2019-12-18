@@ -15,7 +15,7 @@
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>https://hello-world-example.github.io/MySQL/_sidebar/</guid>
-      <description> 安装  MAC 多实例安装 和 主从配置  JDBC  FetchSize 处理大结果集  优化 Binlog  快速入门 GTID _binlog 协议 _Java 解析 binlog _Canal 订阅 binlog  Canal  Canal 简介 数据格式  其他  MySQL 全量同步 Postgres   </description>
+      <description> 安装  MAC 多实例安装 和 主从配置  JDBC  FetchSize 处理大结果集 DataSource  优化 Binlog  快速入门 GTID _binlog 协议 _Java 解析 binlog _Canal 订阅 binlog  Canal  Canal 简介 数据格式  其他  MySQL 全量同步 Postgres   </description>
     </item>
     
     <item>
@@ -148,6 +148,16 @@ private void rollback(MessageConsumer.ConsumeResult consumeResult, Message messa
       
       <guid>https://hello-world-example.github.io/MySQL/docs/Install/Mac-Multiple-Instance/</guid>
       <description>MAC 多实例安装 和 主从配置 如果已经安装 MySQL 查看安装路径在哪 # 查看 mysqld 所在目录 $ which mysqld /usr/local/bin/mysqld # 查看真实路径 $ ll /usr/local/bin/mysqld lrwxr-xr-x ... /usr/local/bin/mysqld -&amp;gt; ../Cellar/mysql/5.7.17/bin/mysqld $ cd /usr/local/Cellar/mysql/5.7.17/ $ pwd /usr/local/Cellar/mysql/5.7.17 启动多实例 # 创建两个目录 $ mkdir -p /opt/mysql_3307 $ mkdir -p /opt/mysql_3308 $ vim /opt/mysql_3307/my.cnf # 内容如下 [mysqld] basedir = /opt/mysql_3307 datadir = /opt/mysql_3307/data port = 3307 server_id = 1 socket = /opt/mysql_3307/mysql.sock $ vim /opt/mysql_3308/my.cnf # 内容如下 [mysqld] basedir = /opt/mysql_3308 datadir = /opt/mysql_3308/data port = 3308 server_id = 2 socket = /opt/mysql_3308/mysql.</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/MySQL/docs/Jdbc/DataSource/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/MySQL/docs/Jdbc/DataSource/</guid>
+      <description>数据源配置    Druid 数据源 建议 说明     initialSize(0) 10 初始化时建立物理连接的个数   minIdle(0) 10 最小连接池数量   maxActive(8) 50 最大连接池数量   maxWait(-1ms) 1000 当没有可用连接时，等待连接被归还的最大时间，单位毫秒，-1 无限等待   maxIdle
+废弃  空闲状态的最大连接数量,超过的空闲连接将被释放   poolPreparedStatements [default: false]  PSCache 对支持游标的数据库性能提升巨大，比如说 Oracle，在mysql下建议关闭 。配合 maxPoolPreparedStatementPerConnectionSize 大于0 时，自动触发修改为 true   validationQuery select 1 检测连接是否有效的 sql，如：select &#39;x&#39;。如果为null，testOnXxx 都不会起作用   testOnBorrow [default:true] false 申请连接时检测连接是否有效，做了这个配置会降低性能   testOnReturn [default:false] false 归还连接时检测连接是否有效，做了这个配置会降低性能   testWhileIdle</description>
     </item>
     
     <item>

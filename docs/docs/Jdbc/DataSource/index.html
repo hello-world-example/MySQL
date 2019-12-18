@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Source | MySQL</title>
+
+
+<link rel="stylesheet" href="/MySQL/book.min.d0f4d7815de7629bacde0354c9ee4200dd36a05a35659573bdc7fdda7bf05bb4.css">
+
+
+
+
+<link rel="icon" href="/MySQL/favicon.png" type="image/x-icon">
+
+
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+</head>
+
+<body>
+  <input type="checkbox" style="display: none" id="menu-control" />
+  <main class="flex container">
+
+    <aside class="book-menu fixed">
+      <nav>
+<h2 class="book-brand">
+  <a href="https://hello-world-example.github.io/MySQL/">MySQL</a>
+</h2>
+
+
+
+
+
+
+    
+  
+  
+  
+
+  <style>
+  nav ul a[href$="\2fMySQL\2f docs\2fJdbc\2f DataSource\2f "] {
+      color: #004ed0;
+  }
+  </style>
+
+<ul>
+<li><strong>安装</strong>
+
+<ul>
+<li><a href="/MySQL/docs/Install/Mac-Multiple-Instance/">MAC 多实例安装 和 主从配置</a></li>
+</ul></li>
+<li><strong>JDBC</strong>
+
+<ul>
+<li><a href="/MySQL/docs/Jdbc/FetchSize/">FetchSize 处理大结果集</a></li>
+<li><a href="/MySQL/docs/Jdbc/DataSource/">DataSource</a></li>
+</ul></li>
+<li><strong>优化</strong></li>
+<li><strong>Binlog</strong>
+
+<ul>
+<li><a href="/MySQL/docs/Binlog/Quick-Start/">快速入门</a></li>
+<li><a href="/MySQL/docs/Binlog/Gtid/">GTID</a></li>
+<li><a href="/MySQL/docs/Binlog/binlog-protocol/">_binlog 协议</a></li>
+<li><a href="/MySQL/docs/Binlog/parse-binlog-by-java/">_Java 解析 binlog</a></li>
+<li><a href="/MySQL/docs/Binlog/parse-binlog-by-canal/">_Canal 订阅 binlog</a></li>
+</ul></li>
+<li><strong>Canal</strong>
+
+<ul>
+<li><a href="/MySQL/docs/canal/introduce/">Canal 简介</a></li>
+<li><a href="/MySQL/docs/canal/data-type/">数据格式</a></li>
+</ul></li>
+<li><strong>其他</strong>
+
+<ul>
+<li><a href="/MySQL/docs/rds_dbsync/">MySQL 全量同步 Postgres</a></li>
+</ul></li>
+</ul>
+
+
+
+
+
+
+
+</nav>
+
+
+<script>
+(function() {
+  var menu = document.querySelector("aside.book-menu nav");
+  addEventListener("beforeunload", function(event) {
+    localStorage.setItem("menu.scrollTop", menu.scrollTop);
+  });
+  menu.scrollTop = localStorage.getItem("menu.scrollTop");
+})();
+</script>
+
+    </aside>
+
+    <div class="book-page">
+      <header class="flex align-center justify-between book-header">
+  <label for="menu-control">
+    <img src="/MySQL/svg/menu.svg" alt="Menu" />
+  </label>
+  <strong>Data Source</strong>
+</header>
+
+      
+<article class="markdown">
+
+<h1 id="数据源配置">数据源配置</h1>
+
+<table>
+<thead>
+<tr>
+<th align="center">Druid 数据源</th>
+<th align="center">建议</th>
+<th>说明</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td align="center"><strong>initialSize</strong>(0)</td>
+<td align="center"><code>10</code></td>
+<td>初始化时建立物理连接的个数</td>
+</tr>
+
+<tr>
+<td align="center"><strong>minIdle</strong>(0)</td>
+<td align="center"><code>10</code></td>
+<td>最小连接池数量</td>
+</tr>
+
+<tr>
+<td align="center"><strong>maxActive</strong>(8)</td>
+<td align="center"><code>50</code></td>
+<td>最大连接池数量</td>
+</tr>
+
+<tr>
+<td align="center"><strong>maxWait</strong>(-1ms)</td>
+<td align="center"><code>1000</code></td>
+<td>当没有可用连接时，等待连接被归还的最大时间，单位毫秒，-1 无限等待</td>
+</tr>
+
+<tr>
+<td align="center"><del>maxIdle</del><br />废弃</td>
+<td align="center"></td>
+<td>空闲状态的最大连接数量,超过的空闲连接将被释放</td>
+</tr>
+
+<tr>
+<td align="center">poolPreparedStatements <br />[default: <code>false</code>]</td>
+<td align="center"></td>
+<td>PSCache 对支持游标的数据库性能提升巨大，比如说 Oracle，<strong>在mysql下建议关闭</strong> 。配合 <code>maxPoolPreparedStatementPerConnectionSize</code> <strong>大于0 时，自动触发修改为 true</strong></td>
+</tr>
+
+<tr>
+<td align="center"><strong>validationQuery</strong></td>
+<td align="center"><code>select 1</code></td>
+<td>检测连接是否有效的 sql，如：<code>select 'x'</code>。<strong>如果为null，testOnXxx 都不会起作用</strong></td>
+</tr>
+
+<tr>
+<td align="center"><strong>testOnBorrow</strong> <br />[default:true]</td>
+<td align="center"><code>false</code></td>
+<td>申请连接时检测连接是否有效，做了这个配置会降低性能</td>
+</tr>
+
+<tr>
+<td align="center"><strong>testOnReturn</strong> <br />[default:false]</td>
+<td align="center"><code>false</code></td>
+<td>归还连接时检测连接是否有效，做了这个配置会降低性能</td>
+</tr>
+
+<tr>
+<td align="center"><strong>testWhileIdle</strong><br />[default:false]</td>
+<td align="center"><code>true</code></td>
+<td>空闲时检查链接是否有效，如果空闲时间大于<code>timeBetweenEvictionRunsMillis</code> 进行检查</td>
+</tr>
+
+<tr>
+<td align="center">keepAlive <br />[default:false]</td>
+<td align="center"></td>
+<td>连接池中的 <code>minIdle</code> 数量以内的连接，空闲时间超过<code>minEvictableIdleTimeMillis</code>，则会执行<code>keepAlive</code>操作。</td>
+</tr>
+
+<tr>
+<td align="center"><strong>timeBetweenEvictionRunsMillis</strong><br />[def: 1m = 60 000]</td>
+<td align="center"><code>60000</code></td>
+<td>检测连接线程执行的间隔时间，如果连接空闲时间大于等于<code>minEvictableIdleTimeMillis</code> 则关闭物理连接，-1 不检查</td>
+</tr>
+
+<tr>
+<td align="center"><del>numTestsPerEvictionRun</del></td>
+<td align="center"></td>
+<td><del>不再使用，一个 DruidDataSource 只支持一个EvictionRun</del></td>
+</tr>
+
+<tr>
+<td align="center"><strong>minEvictableIdleTimeMillis</strong> <br />[default: 30m = 1800 000]</td>
+<td align="center"><code>300000</code></td>
+<td>连接保持空闲而不被驱逐的最小时间</td>
+</tr>
+
+<tr>
+<td align="center">connectionInitSqls</td>
+<td align="center"></td>
+<td>物理连接初始化的时候执行的sql</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="关键参数评估">关键参数评估</h2>
+
+<h3 id="关注以下现有监控数据">关注以下现有监控数据</h3>
+
+<ul>
+<li><strong>对比现有业务 Druid 监控页面</strong>
+
+<ul>
+<li>池中连接数峰值</li>
+<li><strong>活跃连接数峰值</strong></li>
+</ul></li>
+<li>集群 TPS</li>
+<li>实例 TPS</li>
+<li>业务机器数</li>
+<li>数据库实例的并发链接峰值</li>
+<li>数据库并发请求峰值</li>
+<li>SQL 耗时</li>
+</ul>
+
+<h3 id="评估参考点">评估参考点</h3>
+
+<ul>
+<li>一个请求内部会执行多个SQL，一个事务内，使用同一个链接，所以 <strong>maxActive</strong> 应该比数据库并发请求峰值低
+
+<ul>
+<li>参考： <strong>maxActive</strong> &gt;= <strong>服务的 TPS</strong> / 实例个数</li>
+<li>参考： <strong>maxActive</strong> &gt;= <strong>数据库并发请求峰值</strong> / 应用个数 / 应用实例个数</li>
+</ul></li>
+<li><strong>minIdle</strong> 以现有数据平均值估算</li>
+<li>为了避免使用的时候新创建链接，<strong>initialSize = minIdle</strong></li>
+<li>尽量设置合理的线程大小，避免用到 <strong>maxWait</strong> 的情况</li>
+<li>并发量过大，大导致链接池不够，假设远程调用超时时间是 2s，<strong>maxWait + SQL耗时</strong> 建议低于 2s</li>
+<li>链接池不够，<strong>maxWait</strong> 设置过大会导致大量线程卡死，耗尽容器资源，不如快速失败</li>
+</ul>
+
+<h2 id="druid-dbcp-c3p0">Druid、DBCP、C3P0</h2>
+
+<ul>
+<li>Druid
+
+<ul>
+<li>官网：<a href="https://github.com/alibaba/druid/">https://github.com/alibaba/druid/</a></li>
+<li>阿里开源，功能全面，支持各种监控、统计功能</li>
+</ul></li>
+<li>DBCP
+
+<ul>
+<li>官网：<a href="http://commons.apache.org/proper/commons-dbcp/">http://commons.apache.org/proper/commons-dbcp/</a></li>
+<li>依赖 commons-pool 对象池机制的数据库连接池，Apache 系</li>
+</ul></li>
+<li>C3P0
+
+<ul>
+<li>官网：<a href="https://www.mchange.com/projects/c3p0/">https://www.mchange.com/projects/c3p0/</a></li>
+<li>跟随 Hibernate 依赖发布的数据源，历史悠久</li>
+</ul></li>
+<li>其他
+
+<ul>
+<li><a href="https://blog.csdn.net/qq_31125793/article/details/51241943">数据库连接池性能比对(hikari druid c3p0 dbcp jdbc)</a></li>
+<li>HikariCP &gt; <strong>Druid</strong> &gt; tomcat-jdbc &gt; <strong>DBCP</strong> &gt; <strong>C3P0</strong></li>
+</ul></li>
+</ul>
+
+<h2 id="read-more">Read More</h2>
+
+<ul>
+<li>[Druid 可配置属性] <a href="https://github.com/alibaba/druid/wiki/DruidDataSource配置属性列表">DruidDataSource 配置属性列表</a></li>
+<li>[Druid 配置示例] <a href="https://github.com/alibaba/druid/wiki/DruidDataSource%E9%85%8D%E7%BD%AE">DruidDataSource配置</a></li>
+<li><a href="https://www.cnblogs.com/JavaSubin/p/5294721.html">常用数据库连接池 (DBCP、c3p0、Druid) 配置说明</a></li>
+</ul>
+</article>
+
+      
+<div class="book-footer justify-end">
+  
+  
+  <div>
+    <a href="https://github.com/hello-world-example/MySQL/edit/master/HuGo/content/docs/Jdbc/DataSource.md" target="_blank" rel="noopener">
+      <img src="/MySQL/svg/edit.svg" alt="Edit" /> Edit this page
+    </a>
+  </div>
+  
+</div>
+
+
+      
+    </div>
+
+    
+  
+
+  <aside class="book-toc level-3 fixed">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#数据源配置">数据源配置</a>
+<ul>
+<li><a href="#关键参数评估">关键参数评估</a>
+<ul>
+<li><a href="#关注以下现有监控数据">关注以下现有监控数据</a></li>
+<li><a href="#评估参考点">评估参考点</a></li>
+</ul></li>
+<li><a href="#druid-dbcp-c3p0">Druid、DBCP、C3P0</a></li>
+<li><a href="#read-more">Read More</a></li>
+</ul></li>
+</ul>
+</nav>
+  </aside>
+
+
+
+  </main>
+  
+  
+  
+</body>
+
+</html>

@@ -6,6 +6,7 @@ headless: true
   * [MAC 多实例安装 和 主从配置]({{< relref "/docs/Install/Mac-Multiple-Instance.md" >}})
 * **JDBC**
   * [FetchSize 处理大结果集]({{< relref "/docs/Jdbc/FetchSize.md" >}})
+  * [DataSource]({{< relref "/docs/Jdbc/DataSource.md" >}})
 * **优化**
 * **Binlog**
   * [快速入门]({{< relref "/docs/Binlog/Quick-Start.md" >}})

@@ -63,6 +63,11 @@
   </url>
   
   <url>
+    <loc>https://hello-world-example.github.io/MySQL/docs/Jdbc/DataSource/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://hello-world-example.github.io/MySQL/docs/Jdbc/FetchSize/</loc>
     <priority>0</priority>
   </url>
