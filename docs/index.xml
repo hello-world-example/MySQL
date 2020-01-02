@@ -15,7 +15,7 @@
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>https://hello-world-example.github.io/MySQL/_sidebar/</guid>
-      <description> 安装  MAC 多实例安装 和 主从配置  JDBC  FetchSize 处理大结果集 DataSource  优化 Binlog  快速入门 GTID _binlog 协议 _Java 解析 binlog _Canal 订阅 binlog  Canal  Canal 简介 数据格式  其他  MySQL 全量同步 Postgres   </description>
+      <description> 安装  MAC 多实例安装 和 主从配置 使用 Docker 搭建主从测试  JDBC  FetchSize 处理大结果集 DataSource  优化 Binlog  快速入门 GTID _binlog 协议 _Java 解析 binlog _Canal 订阅 binlog  Canal  Canal 简介 数据格式  其他  MySQL 全量同步 Postgres   </description>
     </item>
     
     <item>
@@ -139,6 +139,16 @@ private void rollback(MessageConsumer.ConsumeResult consumeResult, Message messa
  邮件通知内容，集成邮件，参考Spring Boot中使用JavaMailSender发送邮件
 拉取的canal server的ip 拉取的canal server的端口 拉取的canal server的用户 拉取的canal server的密码 拉取的canal server的destination 拉取的batchId 拉取失败的sql 拉取失败的时间  有以下原因会导致消费失败
 1. 程序bug不能解析canal传递过来的sql 解决方案：解决bug，并重新上线并消费 2. canal server或者是destination的配置文件配置错误 解决方案：检查canal server和destination的配置文件，并配置正确 3. 消费成功，但是提交消费成功时，网络出错，导致postgresql实际已消费成功，但是canal 却消费失败？   </description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/MySQL/docs/Install/Docker-Multiple-Instance/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/MySQL/docs/Install/Docker-Multiple-Instance/</guid>
+      <description>使用 Docker 搭建主从测试  假设Docker 宿主机： 192.168.1.5
+ Docker 搭建 MySQL 主从环境 # Master ᐅ docker run -d -e MYSQL_ROOT_PASSWORD=123456 \ --name mysql_3307 \ -p3307:3306 mysql:5.7 \ --server_id=1 --log-bin=master-bin # Slave ᐅ docker run -d -e MYSQL_ROOT_PASSWORD=123456 \ --name mysql_3308 \ -p3308:3306 mysql:5.7 \ --server_id=2 --relay-log=slave-relay-bin # 进入 Master ᐅ docker exec -it mysql_3307 mysql -p123456 mysql&amp;gt; show master status; +-------------------+----------+--------------+------------------+-------------------+ | File | Position | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set | +-------------------+----------+--------------+------------------+-------------------+ | master-bin.</description>
     </item>
     
     <item>

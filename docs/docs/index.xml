@@ -134,6 +134,16 @@ private void rollback(MessageConsumer.ConsumeResult consumeResult, Message messa
     
     <item>
       <title></title>
+      <link>https://hello-world-example.github.io/MySQL/docs/Install/Docker-Multiple-Instance/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/MySQL/docs/Install/Docker-Multiple-Instance/</guid>
+      <description>使用 Docker 搭建主从测试  假设Docker 宿主机： 192.168.1.5
+ Docker 搭建 MySQL 主从环境 # Master ᐅ docker run -d -e MYSQL_ROOT_PASSWORD=123456 \ --name mysql_3307 \ -p3307:3306 mysql:5.7 \ --server_id=1 --log-bin=master-bin # Slave ᐅ docker run -d -e MYSQL_ROOT_PASSWORD=123456 \ --name mysql_3308 \ -p3308:3306 mysql:5.7 \ --server_id=2 --relay-log=slave-relay-bin # 进入 Master ᐅ docker exec -it mysql_3307 mysql -p123456 mysql&amp;gt; show master status; +-------------------+----------+--------------+------------------+-------------------+ | File | Position | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set | +-------------------+----------+--------------+------------------+-------------------+ | master-bin.</description>
+    </item>
+    
+    <item>
+      <title></title>
       <link>https://hello-world-example.github.io/MySQL/docs/Install/Mac-Multiple-Instance/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       

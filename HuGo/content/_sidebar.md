@@ -4,6 +4,7 @@ headless: true
 
 * **安装**
   * [MAC 多实例安装 和 主从配置]({{< relref "/docs/Install/Mac-Multiple-Instance.md" >}})
+  * [使用 Docker 搭建主从测试]({{< relref "/docs/Install/Docker-Multiple-Instance.md" >}})
 * **JDBC**
   * [FetchSize 处理大结果集]({{< relref "/docs/Jdbc/FetchSize.md" >}})
   * [DataSource]({{< relref "/docs/Jdbc/DataSource.md" >}})
