@@ -1,109 +1,105 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
     <loc>https://hello-world-example.github.io/MySQL/_sidebar/</loc>
-    <lastmod>2019-12-18T15:37:14+08:00</lastmod>
+    <lastmod>2020-03-28T15:59:38+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://hello-world-example.github.io/MySQL/docs/Better/innodb_lock_wait_timeout/</loc>
+    <lastmod>2020-03-28T15:59:38+08:00</lastmod>
   </url>
   
   <url>
     <loc>https://hello-world-example.github.io/MySQL/docs/Binlog/binlog-protocol/</loc>
-    <priority>0</priority>
+    <lastmod>2019-09-14T01:14:09+08:00</lastmod>
   </url>
   
   <url>
     <loc>https://hello-world-example.github.io/MySQL/docs/Binlog/Gtid/</loc>
-    <priority>0</priority>
+    <lastmod>2019-09-14T01:14:09+08:00</lastmod>
   </url>
   
   <url>
     <loc>https://hello-world-example.github.io/MySQL/docs/Binlog/parse-binlog-by-canal/</loc>
-    <priority>0</priority>
+    <lastmod>2019-09-14T01:14:09+08:00</lastmod>
   </url>
   
   <url>
     <loc>https://hello-world-example.github.io/MySQL/docs/Binlog/parse-binlog-by-java/</loc>
-    <priority>0</priority>
+    <lastmod>2019-09-14T01:14:09+08:00</lastmod>
   </url>
   
   <url>
     <loc>https://hello-world-example.github.io/MySQL/docs/Binlog/Quick-Start/</loc>
-    <priority>0</priority>
+    <lastmod>2019-09-14T01:14:09+08:00</lastmod>
   </url>
   
   <url>
     <loc>https://hello-world-example.github.io/MySQL/docs/canal/adater/</loc>
-    <priority>0</priority>
+    <lastmod>2019-09-14T01:14:09+08:00</lastmod>
   </url>
   
   <url>
     <loc>https://hello-world-example.github.io/MySQL/docs/canal/data-type/</loc>
-    <priority>0</priority>
+    <lastmod>2019-09-14T01:14:09+08:00</lastmod>
   </url>
   
   <url>
     <loc>https://hello-world-example.github.io/MySQL/docs/canal/introduce/</loc>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://hello-world-example.github.io/MySQL/docs/deploy/deploy/</loc>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://hello-world-example.github.io/MySQL/docs/exception/exception/</loc>
-    <priority>0</priority>
+    <lastmod>2019-09-14T01:14:09+08:00</lastmod>
   </url>
   
   <url>
     <loc>https://hello-world-example.github.io/MySQL/docs/Install/Docker-Multiple-Instance/</loc>
-    <priority>0</priority>
+    <lastmod>2020-01-02T18:36:22+08:00</lastmod>
   </url>
   
   <url>
     <loc>https://hello-world-example.github.io/MySQL/docs/Install/Mac-Multiple-Instance/</loc>
-    <priority>0</priority>
+    <lastmod>2019-09-14T01:14:09+08:00</lastmod>
   </url>
   
   <url>
     <loc>https://hello-world-example.github.io/MySQL/docs/Jdbc/DataSource/</loc>
-    <priority>0</priority>
+    <lastmod>2019-12-18T15:37:14+08:00</lastmod>
   </url>
   
   <url>
     <loc>https://hello-world-example.github.io/MySQL/docs/Jdbc/FetchSize/</loc>
-    <priority>0</priority>
+    <lastmod>2019-09-14T01:17:49+08:00</lastmod>
   </url>
   
   <url>
     <loc>https://hello-world-example.github.io/MySQL/docs/production/production/</loc>
-    <priority>0</priority>
+    <lastmod>2019-09-14T01:14:09+08:00</lastmod>
   </url>
   
   <url>
     <loc>https://hello-world-example.github.io/MySQL/docs/rds_dbsync/</loc>
-    <priority>0</priority>
+    <lastmod>2019-09-14T01:14:09+08:00</lastmod>
   </url>
   
   <url>
     <loc>https://hello-world-example.github.io/MySQL/docs/TD/</loc>
-    <priority>0</priority>
+    <lastmod>2020-03-28T15:59:38+08:00</lastmod>
   </url>
   
   <url>
     <loc>https://hello-world-example.github.io/MySQL/docs/type_conversion/type-conversion/</loc>
-    <priority>0</priority>
+    <lastmod>2019-09-14T01:14:09+08:00</lastmod>
   </url>
   
   <url>
     <loc>https://hello-world-example.github.io/MySQL/docs/validation/validation/</loc>
-    <priority>0</priority>
+    <lastmod>2019-09-14T01:14:09+08:00</lastmod>
   </url>
   
   <url>
     <loc>https://hello-world-example.github.io/MySQL/docs/</loc>
+    <lastmod>2020-03-28T15:59:38+08:00</lastmod>
   </url>
   
   <url>

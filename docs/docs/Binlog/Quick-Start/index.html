@@ -7,7 +7,7 @@
 <title>Quick Start | MySQL</title>
 
 
-<link rel="stylesheet" href="/MySQL/book.min.79de1f7861b0c98f453c0a93bebf3608a280809e417787746c373699639900d7.css">
+<link rel="stylesheet" href="/MySQL/book.min.a2277534155c5e81ce2c8ca6a4cd295525f25c75788a2e4e72c3310491c743b1.css">
 
 
 
@@ -50,39 +50,43 @@ https://github.com/alex-shpak/hugo-book
   </style>
 
 <ul>
-<li><strong>安装</strong>
-
+<li><strong>Install</strong>
 <ul>
 <li><a href="/MySQL/docs/Install/Mac-Multiple-Instance/">MAC 多实例安装 和 主从配置</a></li>
 <li><a href="/MySQL/docs/Install/Docker-Multiple-Instance/">使用 Docker 搭建主从测试</a></li>
-</ul></li>
+</ul>
+</li>
 <li><strong>JDBC</strong>
-
 <ul>
 <li><a href="/MySQL/docs/Jdbc/FetchSize/">FetchSize 处理大结果集</a></li>
-<li><a href="/MySQL/docs/Jdbc/DataSource/">DataSource</a></li>
-</ul></li>
-<li><strong>优化</strong></li>
+<li><a href="/MySQL/docs/Jdbc/DataSource/">DataSource 配置</a></li>
+</ul>
+</li>
+<li><strong>Better</strong>
+<ul>
+<li><a href="/MySQL/docs/Better/innodb_lock_wait_timeout/">锁等待时间</a></li>
+</ul>
+</li>
 <li><strong>Binlog</strong>
-
 <ul>
 <li><a href="/MySQL/docs/Binlog/Quick-Start/">快速入门</a></li>
 <li><a href="/MySQL/docs/Binlog/Gtid/">GTID</a></li>
 <li><a href="/MySQL/docs/Binlog/binlog-protocol/">_binlog 协议</a></li>
 <li><a href="/MySQL/docs/Binlog/parse-binlog-by-java/">_Java 解析 binlog</a></li>
 <li><a href="/MySQL/docs/Binlog/parse-binlog-by-canal/">_Canal 订阅 binlog</a></li>
-</ul></li>
+</ul>
+</li>
 <li><strong>Canal</strong>
-
 <ul>
 <li><a href="/MySQL/docs/canal/introduce/">Canal 简介</a></li>
 <li><a href="/MySQL/docs/canal/data-type/">数据格式</a></li>
-</ul></li>
+</ul>
+</li>
 <li><strong>其他</strong>
-
 <ul>
 <li><a href="/MySQL/docs/rds_dbsync/">MySQL 全量同步 Postgres</a></li>
-</ul></li>
+</ul>
+</li>
 </ul>
 
 
@@ -115,59 +119,49 @@ https://github.com/alex-shpak/hugo-book
 </header>
 
       
-<article class="markdown">
-
-<h1 id="快速入门">快速入门</h1>
-
+<article class="markdown"><h1 id="快速入门">快速入门</h1>
 <p>binlog，即二进制日志，它记录了数据库上的所有改变，并以二进制的形式保存在磁盘中；</p>
-
 <p>可以用来查看数据库的 <strong>变更历史</strong>、<strong>增量备份和恢复</strong>、<strong>主从复制</strong> 等</p>
-
 <h2 id="三种格式">三种格式</h2>
-
 <ul>
 <li><code>Statement</code> ： 基于SQL语句的复制(statement-based replication,SBR)
-
 <ul>
 <li>会修改数据的 SQL 都会记录，</li>
 <li>优点：不记录每一行的变化，减少了 binlog 日志量，节约了IO，提高性能</li>
 <li>缺点：由于记录的只是执行语句，有些函数 slave 与 master 上执行结果可能不一致</li>
-</ul></li>
+</ul>
+</li>
 <li><code>Row</code> ：基于行的复制(row-based replication,RBR)
-
 <ul>
 <li>保存所有被修改的记录内容</li>
 <li>优点：清楚的记录下每一行数据修改的细节，不会出 <code>Statement</code> 主从执行不一致的情况</li>
 <li>缺点：记录 SQL 执行的所有行的变更，日志相对会大很多</li>
-</ul></li>
+</ul>
+</li>
 <li><code>Mixed</code> ：混合模式复制(mixed-based replication,MBR)
-
 <ul>
 <li><code>Statement</code> 与 <code>Row</code> 的结合</li>
 <li>一般的语句修改使用statment格式保存binlog，如一些函数，statement无法完成主从复制的操作，则采用row格式保存binlog，MySQL会根据执行的每一条具体的sql语句来区分对待记录的日志形式</li>
-</ul></li>
 </ul>
-
+</li>
+</ul>
 <h2 id="查看现有配置">查看现有配置</h2>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql">mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</span> variables <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;binlog_format&#39;</span>;
 <span style="color:#f92672">+---------------+-----------+</span>
 <span style="color:#f92672">|</span> Variable_name <span style="color:#f92672">|</span> Value     <span style="color:#f92672">|</span>
 <span style="color:#f92672">+---------------+-----------+</span>
 <span style="color:#f92672">|</span> binlog_format <span style="color:#f92672">|</span> STATEMENT <span style="color:#f92672">|</span>
-<span style="color:#f92672">+---------------+-----------+</span></code></pre></div>
-<h2 id="查看是否开启binlog">查看是否开启binlog</h2>
+<span style="color:#f92672">+---------------+-----------+</span>
+</code></pre></div><h2 id="查看是否开启binlog">查看是否开启binlog</h2>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql">mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</span> variables <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;log_bin&#39;</span>;
 <span style="color:#f92672">+---------------+-------+</span>
 <span style="color:#f92672">|</span> Variable_name <span style="color:#f92672">|</span> Value <span style="color:#f92672">|</span>
 <span style="color:#f92672">+---------------+-------+</span>
 <span style="color:#f92672">|</span> log_bin       <span style="color:#f92672">|</span> OFF   <span style="color:#f92672">|</span>
-<span style="color:#f92672">+---------------+-------+</span></code></pre></div>
-<h2 id="查看-my-cnf-my-ini-配置文件在哪">查看 my.cnf/my.ini 配置文件在哪</h2>
-
+<span style="color:#f92672">+---------------+-------+</span>
+</code></pre></div><h2 id="查看-mycnfmyini-配置文件在哪">查看 my.cnf/my.ini 配置文件在哪</h2>
 <h3 id="本地搜索">本地搜索</h3>
-
 <p>mysql-test 文件夹下面的是 MySQL 的一些测试用例</p>
-
 <p>可查看 <code>cat ${MYSQL_HOME}/mysql-test/README</code> 文件详细了解</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ locate my.cnf
 /usr/local/mysql-5.6.24-osx10.8-x86_64/my.cnf
@@ -180,33 +174,28 @@ https://github.com/alex-shpak/hugo-book
 /usr/local/mysql-5.6.24-osx10.8-x86_64/mysql-test/suite/ndb_team/my.cnf
 /usr/local/mysql-5.6.24-osx10.8-x86_64/mysql-test/suite/rpl/extension/bhs/my.cnf
 /usr/local/mysql-5.6.24-osx10.8-x86_64/mysql-test/suite/rpl/my.cnf
-/usr/local/mysql-5.6.24-osx10.8-x86_64/mysql-test/suite/rpl_ndb/my.cnf</code></pre></div>
-<h3 id="查看-mysql-进程参数">查看 MySQL 进程参数</h3>
-
+/usr/local/mysql-5.6.24-osx10.8-x86_64/mysql-test/suite/rpl_ndb/my.cnf
+</code></pre></div><h3 id="查看-mysql-进程参数">查看 MySQL 进程参数</h3>
 <p>MySQL 启动的时候可通过参数 <code>--defaults-file</code> 指定配置文件</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ mysqld --help --verbose | grep <span style="color:#e6db74">&#34;defaults-file&#34;</span>
---defaults-file<span style="color:#f92672">=</span><span style="color:#75715e">#       Only read default options from the given file #.</span></code></pre></div>
-<p>查看 mysqld 进程参数，如果有指定 <code>--defaults-file</code> 参数，可直接找到配置文件 位置</p>
-
+--defaults-file<span style="color:#f92672">=</span><span style="color:#75715e">#       Only read default options from the given file #.</span>
+</code></pre></div><p>查看 mysqld 进程参数，如果有指定 <code>--defaults-file</code> 参数，可直接找到配置文件 位置</p>
 <p>以下命令执行结果可看出来，并未发现有明确指定 配置文件</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ps -ef | grep mysqld
 ...
 
 ... /usr/local/mysql/bin/mysqld --basedir<span style="color:#f92672">=</span>/usr/local/mysql --datadir<span style="color:#f92672">=</span>/usr/local/mysql/data --plugin-dir<span style="color:#f92672">=</span>/usr/local/mysql/lib/plugin --user<span style="color:#f92672">=</span>mysql --log-error<span style="color:#f92672">=</span>/usr/local/mysql/data/Kail-Mac.local.err --pid-file<span style="color:#f92672">=</span>/usr/local/mysql/data/Kail-Mac.local.pid
 
-...</code></pre></div>
-<h3 id="配置文件默认扫描路径">配置文件默认扫描路径</h3>
-
+...
+</code></pre></div><h3 id="配置文件默认扫描路径">配置文件默认扫描路径</h3>
 <p>查看 MySQL 帮助</p>
-
 <p>从命令帮助文档来看，默认的配置文件扫描顺序是</p>
-
 <ul>
 <li>/etc/my.cnf</li>
 <li><strong>/etc/mysql/my.cnf</strong></li>
 <li>/usr/local/etc/my.cnf</li>
-
-<li><p><strong>~/.my.cnf</strong> 「MySQL 主目录文件夹下」</p>
+<li><strong>~/.my.cnf</strong> 「MySQL 主目录文件夹下」</li>
+</ul>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ mysqld --help --verbose | less
 ...
 
@@ -220,15 +209,12 @@ The following groups are read: mysqld server mysqld-5.7
 The following options may be given as the first argument:
 --print-defaults        Print the program argument list and exit.
 --no-defaults           Don<span style="color:#960050;background-color:#1e0010">&#39;</span>t read default options from any option file,
-                    except <span style="color:#66d9ef">for</span> login file.
+                        except <span style="color:#66d9ef">for</span> login file.
 --defaults-file<span style="color:#f92672">=</span><span style="color:#75715e">#       Only read default options from the given file #.</span>
 --defaults-extra-file<span style="color:#f92672">=</span><span style="color:#75715e"># Read this file after the global files are read.</span>
 
-...</code></pre></div></li>
-</ul>
-
-<h2 id="开启-binlog-日志">开启 binlog 日志</h2>
-
+...
+</code></pre></div><h2 id="开启-binlog-日志">开启 binlog 日志</h2>
 <p>按照配置文件的扫描路径，这里创建 <code>/etc/mysql/my.cnf</code> 配置文件，内容如下（ 拷贝来自<code>~/.my.cnf</code> ）：</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>mysqld<span style="color:#f92672">]</span>
 
@@ -245,8 +231,8 @@ binlog_format <span style="color:#f92672">=</span> ROW
 basedir <span style="color:#f92672">=</span> /usr/local/mysql
 datadir <span style="color:#f92672">=</span> /usr/local/mysql/data
 port <span style="color:#f92672">=</span> <span style="color:#ae81ff">3306</span>
-server_id <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span></code></pre></div>
-<p>重启之后查看状态</p>
+server_id <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
+</code></pre></div><p>重启之后查看状态</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql">mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</span> variables <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;%log_bin%&#39;</span>;
 <span style="color:#f92672">+---------------------------------+------------------------------------------+</span>
 <span style="color:#f92672">|</span> Variable_name                   <span style="color:#f92672">|</span> Value                                    <span style="color:#f92672">|</span>
@@ -267,11 +253,10 @@ mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</s
 <span style="color:#f92672">+---------------+-------+</span>
 <span style="color:#f92672">|</span> binlog_format <span style="color:#f92672">|</span> ROW   <span style="color:#f92672">|</span>
 <span style="color:#f92672">+---------------+-------+</span>
-<span style="color:#ae81ff">1</span> row <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">set</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)</code></pre></div>
-<blockquote>
+<span style="color:#ae81ff">1</span> row <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">set</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</code></pre></div><blockquote>
 <p>Percona <a href="https://tools.percona.com/wizard">在线生成 my.ini / my.conf</a></p>
 </blockquote>
-
 <h2 id="查看-binlog-状态">查看 binlog 状态</h2>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql"><span style="color:#75715e"># 查看所有binlog日志列表
 </span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</span> master logs; <span style="color:#75715e"># 或 show binary logs;
@@ -310,9 +295,8 @@ mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</s
 <span style="color:#f92672">|</span> Log_name         <span style="color:#f92672">|</span> File_size <span style="color:#f92672">|</span>
 <span style="color:#f92672">+------------------+-----------+</span>
 <span style="color:#f92672">|</span> mysql<span style="color:#f92672">-</span>bin.<span style="color:#ae81ff">000001</span> <span style="color:#f92672">|</span>       <span style="color:#ae81ff">120</span> <span style="color:#f92672">|</span>
-<span style="color:#f92672">+------------------+-----------+</span></code></pre></div>
-<h2 id="查看-binlog-内容">查看 binlog 内容</h2>
-
+<span style="color:#f92672">+------------------+-----------+</span>
+</code></pre></div><h2 id="查看-binlog-内容">查看 binlog 内容</h2>
 <p>先准备测试数据</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql"><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">TABLE</span> <span style="color:#f92672">`</span>MY_TEST<span style="color:#f92672">`</span> (
   <span style="color:#f92672">`</span>ID<span style="color:#f92672">`</span> <span style="color:#66d9ef">bigint</span> <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span> <span style="color:#66d9ef">AUTO_INCREMENT</span>,
@@ -322,13 +306,13 @@ mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</s
   <span style="color:#66d9ef">PRIMARY</span> <span style="color:#66d9ef">KEY</span> (<span style="color:#f92672">`</span>ID<span style="color:#f92672">`</span>)
 ) <span style="color:#66d9ef">ENGINE</span><span style="color:#f92672">=</span>InnoDB <span style="color:#66d9ef">DEFAULT</span> <span style="color:#66d9ef">CHARSET</span><span style="color:#f92672">=</span>utf8;
 
-<span style="color:#66d9ef">insert</span> <span style="color:#66d9ef">into</span> <span style="color:#f92672">`</span>test<span style="color:#f92672">`</span>.<span style="color:#f92672">`</span>MY_TEST<span style="color:#f92672">`</span> ( <span style="color:#f92672">`</span>UNAME<span style="color:#f92672">`</span>, <span style="color:#f92672">`</span>AGE<span style="color:#f92672">`</span>) <span style="color:#66d9ef">values</span> ( <span style="color:#e6db74">&#39;kail&#39;</span>, <span style="color:#e6db74">&#39;26&#39;</span>);</code></pre></div>
-<h3 id="mysqlbinlog">mysqlbinlog</h3>
+<span style="color:#66d9ef">insert</span> <span style="color:#66d9ef">into</span> <span style="color:#f92672">`</span>test<span style="color:#f92672">`</span>.<span style="color:#f92672">`</span>MY_TEST<span style="color:#f92672">`</span> ( <span style="color:#f92672">`</span>UNAME<span style="color:#f92672">`</span>, <span style="color:#f92672">`</span>AGE<span style="color:#f92672">`</span>) <span style="color:#66d9ef">values</span> ( <span style="color:#e6db74">&#39;kail&#39;</span>, <span style="color:#e6db74">&#39;26&#39;</span>);
+</code></pre></div><h3 id="mysqlbinlog">mysqlbinlog</h3>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ./bin/mysqlbinlog ./log-bin/mysql-bin.000001
 
-/*!50530 SET @@SESSION.PSEUDO_SLAVE_MODE<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>*/;
-/*!40019 SET @@session.max_insert_delayed_threads<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>*/;
-/*!50003 SET @OLD_COMPLETION_TYPE<span style="color:#f92672">=</span>@@COMPLETION_TYPE,COMPLETION_TYPE<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>*/;
+/*!50530 SET @@SESSION.PSEUDO_SLAVE_MODE<span style="color:#f92672">=</span>1*/;
+/*!40019 SET @@session.max_insert_delayed_threads<span style="color:#f92672">=</span>0*/;
+/*!50003 SET @OLD_COMPLETION_TYPE<span style="color:#f92672">=</span>@@COMPLETION_TYPE,COMPLETION_TYPE<span style="color:#f92672">=</span>0*/;
 DELIMITER /*!*/;
 <span style="color:#75715e"># at 4</span>
 <span style="color:#75715e">#190301 19:51:55 server id 1  end_log_pos 120 CRC32 0xfc27ae02 	Start: binlog v 4, server v 5.6.24-log created 190301 19:51:55 at startup</span>
@@ -342,18 +326,18 @@ BINLOG <span style="color:#e6db74">&#39;
 <span style="color:#75715e"># at 120</span>
 <span style="color:#75715e">#190301 19:56:48 server id 1  end_log_pos 429 CRC32 0xfa77cd88 	Query	thread_id=589	exec_time=0	error_code=0</span>
 use <span style="color:#e6db74">`</span>test<span style="color:#e6db74">`</span>/*!*/;
-SET TIMESTAMP<span style="color:#f92672">=</span><span style="color:#ae81ff">1551441408</span>/*!*/;
-SET @@session.pseudo_thread_id<span style="color:#f92672">=</span><span style="color:#ae81ff">589</span>/*!*/;
-SET @@session.foreign_key_checks<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>, @@session.sql_auto_is_null<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>, @@session.unique_checks<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>, @@session.autocommit<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>/*!*/;
-SET @@session.sql_mode<span style="color:#f92672">=</span><span style="color:#ae81ff">1075838976</span>/*!*/;
-SET @@session.auto_increment_increment<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>, @@session.auto_increment_offset<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>/*!*/;
+SET TIMESTAMP<span style="color:#f92672">=</span>1551441408/*!*/;
+SET @@session.pseudo_thread_id<span style="color:#f92672">=</span>589/*!*/;
+SET @@session.foreign_key_checks<span style="color:#f92672">=</span>1, @@session.sql_auto_is_null<span style="color:#f92672">=</span>0, @@session.unique_checks<span style="color:#f92672">=</span>1, @@session.autocommit<span style="color:#f92672">=</span>1/*!*/;
+SET @@session.sql_mode<span style="color:#f92672">=</span>1075838976/*!*/;
+SET @@session.auto_increment_increment<span style="color:#f92672">=</span>1, @@session.auto_increment_offset<span style="color:#f92672">=</span>1/*!*/;
 /*!<span style="color:#ae81ff">\C</span> utf8mb4 *//*!*/;
-SET @@session.character_set_client<span style="color:#f92672">=</span><span style="color:#ae81ff">45</span>,@@session.collation_connection<span style="color:#f92672">=</span><span style="color:#ae81ff">45</span>,@@session.collation_server<span style="color:#f92672">=</span><span style="color:#ae81ff">8</span>/*!*/;
-SET @@session.lc_time_names<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>/*!*/;
+SET @@session.character_set_client<span style="color:#f92672">=</span>45,@@session.collation_connection<span style="color:#f92672">=</span>45,@@session.collation_server<span style="color:#f92672">=</span>8/*!*/;
+SET @@session.lc_time_names<span style="color:#f92672">=</span>0/*!*/;
 SET @@session.collation_database<span style="color:#f92672">=</span>DEFAULT/*!*/;
 CREATE TABLE <span style="color:#e6db74">`</span>MY_TEST<span style="color:#e6db74">`</span> <span style="color:#f92672">(</span>
   <span style="color:#e6db74">`</span>ID<span style="color:#e6db74">`</span> bigint NOT NULL AUTO_INCREMENT,
-  <span style="color:#e6db74">`</span>UNAME<span style="color:#e6db74">`</span> varchar<span style="color:#f92672">(</span><span style="color:#ae81ff">50</span><span style="color:#f92672">)</span> DEFAULT NULL,
+  <span style="color:#e6db74">`</span>UNAME<span style="color:#e6db74">`</span> varchar<span style="color:#f92672">(</span>50<span style="color:#f92672">)</span> DEFAULT NULL,
   <span style="color:#e6db74">`</span>AGE<span style="color:#e6db74">`</span> int DEFAULT NULL,
   <span style="color:#e6db74">`</span>CREATE_TIME<span style="color:#e6db74">`</span> datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY <span style="color:#f92672">(</span><span style="color:#e6db74">`</span>ID<span style="color:#e6db74">`</span><span style="color:#f92672">)</span>
@@ -361,7 +345,7 @@ CREATE TABLE <span style="color:#e6db74">`</span>MY_TEST<span style="color:#e6db
 /*!*/;
 <span style="color:#75715e"># at 429</span>
 <span style="color:#75715e">#190301 19:57:05 server id 1  end_log_pos 509 CRC32 0x1bc8c265 	Query	thread_id=593	exec_time=0	error_code=0</span>
-SET TIMESTAMP<span style="color:#f92672">=</span><span style="color:#ae81ff">1551441425</span>/*!*/;
+SET TIMESTAMP<span style="color:#f92672">=</span>1551441425/*!*/;
 SET @@session.time_zone<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;SYSTEM&#39;</span>/*!*/;
 BEGIN
 /*!*/;
@@ -382,8 +366,8 @@ DELIMITER ;
 <span style="color:#75715e"># End of log file</span>
 ROLLBACK /* added by mysqlbinlog */;
 /*!50003 SET COMPLETION_TYPE<span style="color:#f92672">=</span>@OLD_COMPLETION_TYPE*/;
-/*!50530 SET @@SESSION.PSEUDO_SLAVE_MODE<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>*/;</code></pre></div>
-<p>从日志能看到创建表的 SQL 语句，但是插入语句却看不到，这是因为日志模式开启的是行模式，不记录原始SQL，只记录更新的数据。可通过添加以下参数，查看更新的数据：</p>
+/*!50530 SET @@SESSION.PSEUDO_SLAVE_MODE<span style="color:#f92672">=</span>0*/;
+</code></pre></div><p>从日志能看到创建表的 SQL 语句，但是插入语句却看不到，这是因为日志模式开启的是行模式，不记录原始SQL，只记录更新的数据。可通过添加以下参数，查看更新的数据：</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$  ./bin/mysqlbinlog --base64-output<span style="color:#f92672">=</span>decode-rows -v ./log-bin/mysql-bin.000001
 ...
 *!*/;
@@ -400,13 +384,11 @@ ROLLBACK /* added by mysqlbinlog */;
 <span style="color:#75715e"># at 623</span>
 <span style="color:#75715e">#190301 19:57:05 server id 1  end_log_pos 654 CRC32 0x02ef535a 	Xid = 73</span>
 COMMIT/*!*/;
-...</code></pre></div>
-<blockquote>
+...
+</code></pre></div><blockquote>
 <p><a href="https://www.cnblogs.com/netsa/p/7350629.html">mysql row日志格式下 查看binlog sql语句</a></p>
 </blockquote>
-
 <h3 id="show-binlog-events">show binlog events</h3>
-
 <p>命令格式</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql">mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</span> binlog events [<span style="color:#66d9ef">IN</span> <span style="color:#e6db74">&#39;log_name&#39;</span>] [<span style="color:#66d9ef">FROM</span> pos] [<span style="color:#66d9ef">LIMIT</span> [offset,] row_count];
 
@@ -414,8 +396,8 @@ COMMIT/*!*/;
     <span style="color:#66d9ef">IN</span> <span style="color:#e6db74">&#39;log_name&#39;</span>   <span style="color:#960050;background-color:#1e0010">指定要查询的</span><span style="color:#a6e22e">binlog文件名</span>(<span style="color:#960050;background-color:#1e0010">不指定就是第一个</span>binlog文件)
     <span style="color:#66d9ef">FROM</span> pos        <span style="color:#960050;background-color:#1e0010">指定从哪个</span><span style="color:#a6e22e">pos起始点开始查起</span>(<span style="color:#960050;background-color:#1e0010">不指定就是从整个文件首个</span>pos点开始算)
     <span style="color:#66d9ef">LIMIT</span> [offset,] <span style="color:#960050;background-color:#1e0010">偏移量</span>(<span style="color:#960050;background-color:#1e0010">不指定就是</span><span style="color:#ae81ff">0</span>)
-    row_count       <span style="color:#960050;background-color:#1e0010">查询总条数</span>(<span style="color:#960050;background-color:#1e0010">不指定就是所有行</span>)</code></pre></div>
-<p>举例</p>
+    row_count       <span style="color:#960050;background-color:#1e0010">查询总条数</span>(<span style="color:#960050;background-color:#1e0010">不指定就是所有行</span>)
+</code></pre></div><p>举例</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql">ysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</span> binlog events <span style="color:#66d9ef">in</span> <span style="color:#e6db74">&#39;mysql-bin.000001&#39;</span> <span style="color:#66d9ef">from</span> <span style="color:#ae81ff">120</span> <span style="color:#960050;background-color:#1e0010">\</span>G
 <span style="color:#f92672">***************************</span> <span style="color:#ae81ff">1</span>. row <span style="color:#f92672">***************************</span>
    Log_name: mysql<span style="color:#f92672">-</span>bin.<span style="color:#ae81ff">000001</span>
@@ -457,9 +439,8 @@ End_log_pos: <span style="color:#ae81ff">623</span>
  Event_type: Xid
   Server_id: <span style="color:#ae81ff">1</span>
 End_log_pos: <span style="color:#ae81ff">654</span>
-       Info: COMMIT <span style="color:#75715e">/* xid=73 */</span></code></pre></div>
-<h2 id="read-more">Read More</h2>
-
+       Info: COMMIT <span style="color:#75715e">/* xid=73 */</span>
+</code></pre></div><h2 id="read-more">Read More</h2>
 <ul>
 <li>❤❤❤ <a href="https://www.cnblogs.com/martinzhang/p/3454358.html">MySQL的binlog日志</a> ❤❤❤</li>
 <li><a href="https://blog.csdn.net/ouyang111222/article/details/50300851">mysql binlog系列（一）&mdash;-binlog介绍、日志格式、数据查看等</a></li>
@@ -495,28 +476,27 @@ End_log_pos: <span style="color:#ae81ff">654</span>
 
   <aside class="book-toc level-3 fixed">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#快速入门">快速入门</a>
-<ul>
-<li><a href="#三种格式">三种格式</a></li>
-<li><a href="#查看现有配置">查看现有配置</a></li>
-<li><a href="#查看是否开启binlog">查看是否开启binlog</a></li>
-<li><a href="#查看-my-cnf-my-ini-配置文件在哪">查看 my.cnf/my.ini 配置文件在哪</a>
-<ul>
-<li><a href="#本地搜索">本地搜索</a></li>
-<li><a href="#查看-mysql-进程参数">查看 MySQL 进程参数</a></li>
-<li><a href="#配置文件默认扫描路径">配置文件默认扫描路径</a></li>
-</ul></li>
-<li><a href="#开启-binlog-日志">开启 binlog 日志</a></li>
-<li><a href="#查看-binlog-状态">查看 binlog 状态</a></li>
-<li><a href="#查看-binlog-内容">查看 binlog 内容</a>
-<ul>
-<li><a href="#mysqlbinlog">mysqlbinlog</a></li>
-<li><a href="#show-binlog-events">show binlog events</a></li>
-</ul></li>
-<li><a href="#read-more">Read More</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#三种格式">三种格式</a></li>
+    <li><a href="#查看现有配置">查看现有配置</a></li>
+    <li><a href="#查看是否开启binlog">查看是否开启binlog</a></li>
+    <li><a href="#查看-mycnfmyini-配置文件在哪">查看 my.cnf/my.ini 配置文件在哪</a>
+      <ul>
+        <li><a href="#本地搜索">本地搜索</a></li>
+        <li><a href="#查看-mysql-进程参数">查看 MySQL 进程参数</a></li>
+        <li><a href="#配置文件默认扫描路径">配置文件默认扫描路径</a></li>
+      </ul>
+    </li>
+    <li><a href="#开启-binlog-日志">开启 binlog 日志</a></li>
+    <li><a href="#查看-binlog-状态">查看 binlog 状态</a></li>
+    <li><a href="#查看-binlog-内容">查看 binlog 内容</a>
+      <ul>
+        <li><a href="#mysqlbinlog">mysqlbinlog</a></li>
+        <li><a href="#show-binlog-events">show binlog events</a></li>
+      </ul>
+    </li>
+    <li><a href="#read-more">Read More</a></li>
+  </ul>
 </nav>
   </aside>
 

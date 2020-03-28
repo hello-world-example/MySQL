@@ -7,7 +7,7 @@
 <title>Docker Multiple Instance | MySQL</title>
 
 
-<link rel="stylesheet" href="/MySQL/book.min.79de1f7861b0c98f453c0a93bebf3608a280809e417787746c373699639900d7.css">
+<link rel="stylesheet" href="/MySQL/book.min.a2277534155c5e81ce2c8ca6a4cd295525f25c75788a2e4e72c3310491c743b1.css">
 
 
 
@@ -50,39 +50,43 @@ https://github.com/alex-shpak/hugo-book
   </style>
 
 <ul>
-<li><strong>安装</strong>
-
+<li><strong>Install</strong>
 <ul>
 <li><a href="/MySQL/docs/Install/Mac-Multiple-Instance/">MAC 多实例安装 和 主从配置</a></li>
 <li><a href="/MySQL/docs/Install/Docker-Multiple-Instance/">使用 Docker 搭建主从测试</a></li>
-</ul></li>
+</ul>
+</li>
 <li><strong>JDBC</strong>
-
 <ul>
 <li><a href="/MySQL/docs/Jdbc/FetchSize/">FetchSize 处理大结果集</a></li>
-<li><a href="/MySQL/docs/Jdbc/DataSource/">DataSource</a></li>
-</ul></li>
-<li><strong>优化</strong></li>
+<li><a href="/MySQL/docs/Jdbc/DataSource/">DataSource 配置</a></li>
+</ul>
+</li>
+<li><strong>Better</strong>
+<ul>
+<li><a href="/MySQL/docs/Better/innodb_lock_wait_timeout/">锁等待时间</a></li>
+</ul>
+</li>
 <li><strong>Binlog</strong>
-
 <ul>
 <li><a href="/MySQL/docs/Binlog/Quick-Start/">快速入门</a></li>
 <li><a href="/MySQL/docs/Binlog/Gtid/">GTID</a></li>
 <li><a href="/MySQL/docs/Binlog/binlog-protocol/">_binlog 协议</a></li>
 <li><a href="/MySQL/docs/Binlog/parse-binlog-by-java/">_Java 解析 binlog</a></li>
 <li><a href="/MySQL/docs/Binlog/parse-binlog-by-canal/">_Canal 订阅 binlog</a></li>
-</ul></li>
+</ul>
+</li>
 <li><strong>Canal</strong>
-
 <ul>
 <li><a href="/MySQL/docs/canal/introduce/">Canal 简介</a></li>
 <li><a href="/MySQL/docs/canal/data-type/">数据格式</a></li>
-</ul></li>
+</ul>
+</li>
 <li><strong>其他</strong>
-
 <ul>
 <li><a href="/MySQL/docs/rds_dbsync/">MySQL 全量同步 Postgres</a></li>
-</ul></li>
+</ul>
+</li>
 </ul>
 
 
@@ -115,14 +119,10 @@ https://github.com/alex-shpak/hugo-book
 </header>
 
       
-<article class="markdown">
-
-<h1 id="使用-docker-搭建主从测试">使用 Docker 搭建主从测试</h1>
-
+<article class="markdown"><h1 id="使用-docker-搭建主从测试">使用 Docker 搭建主从测试</h1>
 <blockquote>
 <p>假设Docker 宿主机： 192.168.1.5</p>
 </blockquote>
-
 <h2 id="docker-搭建-mysql-主从环境">Docker 搭建 MySQL 主从环境</h2>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql"><span style="color:#75715e"># Master
 </span><span style="color:#75715e"></span><span style="color:#960050;background-color:#1e0010">ᐅ</span> docker run <span style="color:#f92672">-</span>d <span style="color:#f92672">-</span>e MYSQL_ROOT_PASSWORD<span style="color:#f92672">=</span><span style="color:#ae81ff">123456</span> <span style="color:#960050;background-color:#1e0010">\</span>
@@ -179,16 +179,22 @@ mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</s
         Relay_Master_Log_File: master<span style="color:#f92672">-</span>bin.<span style="color:#ae81ff">000003</span>
              Slave_IO_Running: Yes
             Slave_SQL_Running: Yes
-...</code></pre></div>
-<h2 id="read-more">Read More</h2>
-
+...
+</code></pre></div><h2 id="read-more">Read More</h2>
 <ul>
 <li><a href="https://hub.docker.com/_/mysql">https://hub.docker.com/_/mysql</a></li>
 </ul>
 </article>
 
       
-<div class="book-footer justify-end">
+<div class="book-footer justify-between">
+  
+  <div>
+    
+    <a href="https://github.com/hello-world-example/MySQL/commit/aab618a3b6083a122b22b7ba029b25d3564893ee" title='Last modified Jan 2, 2020 by kailbin' target="_blank" rel="noopener">
+      <img src="/MySQL/svg/calendar.svg" alt="Changed" /> Jan 2, 2020
+    </a>
+  </div>
   
   
   <div>
@@ -208,13 +214,10 @@ mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</s
 
   <aside class="book-toc level-3 fixed">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#使用-docker-搭建主从测试">使用 Docker 搭建主从测试</a>
-<ul>
-<li><a href="#docker-搭建-mysql-主从环境">Docker 搭建 MySQL 主从环境</a></li>
-<li><a href="#read-more">Read More</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#docker-搭建-mysql-主从环境">Docker 搭建 MySQL 主从环境</a></li>
+    <li><a href="#read-more">Read More</a></li>
+  </ul>
 </nav>
   </aside>
 

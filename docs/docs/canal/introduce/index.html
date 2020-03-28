@@ -7,7 +7,7 @@
 <title>Introduce | MySQL</title>
 
 
-<link rel="stylesheet" href="/MySQL/book.min.79de1f7861b0c98f453c0a93bebf3608a280809e417787746c373699639900d7.css">
+<link rel="stylesheet" href="/MySQL/book.min.a2277534155c5e81ce2c8ca6a4cd295525f25c75788a2e4e72c3310491c743b1.css">
 
 
 
@@ -50,39 +50,43 @@ https://github.com/alex-shpak/hugo-book
   </style>
 
 <ul>
-<li><strong>安装</strong>
-
+<li><strong>Install</strong>
 <ul>
 <li><a href="/MySQL/docs/Install/Mac-Multiple-Instance/">MAC 多实例安装 和 主从配置</a></li>
 <li><a href="/MySQL/docs/Install/Docker-Multiple-Instance/">使用 Docker 搭建主从测试</a></li>
-</ul></li>
+</ul>
+</li>
 <li><strong>JDBC</strong>
-
 <ul>
 <li><a href="/MySQL/docs/Jdbc/FetchSize/">FetchSize 处理大结果集</a></li>
-<li><a href="/MySQL/docs/Jdbc/DataSource/">DataSource</a></li>
-</ul></li>
-<li><strong>优化</strong></li>
+<li><a href="/MySQL/docs/Jdbc/DataSource/">DataSource 配置</a></li>
+</ul>
+</li>
+<li><strong>Better</strong>
+<ul>
+<li><a href="/MySQL/docs/Better/innodb_lock_wait_timeout/">锁等待时间</a></li>
+</ul>
+</li>
 <li><strong>Binlog</strong>
-
 <ul>
 <li><a href="/MySQL/docs/Binlog/Quick-Start/">快速入门</a></li>
 <li><a href="/MySQL/docs/Binlog/Gtid/">GTID</a></li>
 <li><a href="/MySQL/docs/Binlog/binlog-protocol/">_binlog 协议</a></li>
 <li><a href="/MySQL/docs/Binlog/parse-binlog-by-java/">_Java 解析 binlog</a></li>
 <li><a href="/MySQL/docs/Binlog/parse-binlog-by-canal/">_Canal 订阅 binlog</a></li>
-</ul></li>
+</ul>
+</li>
 <li><strong>Canal</strong>
-
 <ul>
 <li><a href="/MySQL/docs/canal/introduce/">Canal 简介</a></li>
 <li><a href="/MySQL/docs/canal/data-type/">数据格式</a></li>
-</ul></li>
+</ul>
+</li>
 <li><strong>其他</strong>
-
 <ul>
 <li><a href="/MySQL/docs/rds_dbsync/">MySQL 全量同步 Postgres</a></li>
-</ul></li>
+</ul>
+</li>
 </ul>
 
 
@@ -115,36 +119,28 @@ https://github.com/alex-shpak/hugo-book
 </header>
 
       
-<article class="markdown">
-
-<h1 id="canal简介">canal简介</h1>
-
+<article class="markdown"><h1 id="canal简介">canal简介</h1>
 <h2 id="canal介绍">canal介绍</h2>
-
 <p>Canal是阿里巴巴的开源软件，它主要是一个应用和mysql之间的数据同步中间件。类似Mq等这样的消息中间件，但他不需要借助其他的系统发消息，他是直接监听Mysql数据库，它伪装成mysql的从库通过对binlog日志的解析从而实现了数据库增删改查的监听</p>
-
 <h2 id="主要的业务场景">主要的业务场景</h2>
-
 <ul>
 <li>数据库备份</li>
 <li>搜索引擎索引更新&amp;建立</li>
 <li>业务缓存的更新</li>
 <li>充当消息组件（订单变更，商品资料变更等）</li>
 </ul>
-
 <h2 id="工作原理">工作原理</h2>
-
 <ol>
 <li>canal模拟mysql slave的交互协议，伪装自己为mysql slave，向mysql master发送dump协议</li>
 <li>​mysql master收到dump请求，开始推送binary log给slave(也就是canal)</li>
 <li>canal解析binary log对象(原始为byte流)</li>
 </ol>
-
 <h2 id="canal环境部署">Canal环境部署</h2>
-
 <ul>
-<li><p>安装canal</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-" data-lang="">方式一
+<li>安装canal</li>
+</ul>
+<pre><code class="language-$bash" data-lang="$bash">
+方式一
 $ git clone https://github.com/alibaba/canal.git
 $ cd canal
 
@@ -164,10 +160,12 @@ $ tar -xf canal.example-1.1.3.tar.gz -C example
 1. 打开浏览器，访问https://github.com/alibaba/canal
 2. 点击页面的realse按钮
 3. 选择页面中assets列表中canal.deployer-1.1.3.tar.gz，进行下载
-4. tar -xf canal.deployer-1.1.3.tar.gz进行解压</code></pre></div></li>
+4. tar -xf canal.deployer-1.1.3.tar.gz进行解压
 
-<li><p>canal重要配置文件详解</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-" data-lang=""># 进入主目录
+</code></pre><ul>
+<li>canal重要配置文件详解</li>
+</ul>
+<pre><code class="language-$bash" data-lang="$bash"># 进入主目录
 $ cd target/canal
 
 # canal.properties 重要参数解释
@@ -197,107 +195,110 @@ canal.instance.master.position=637
 canal.instance.filter.regex=.*\\..*
 
 # 在canal启动成功并消费binlog成后，会生成一个meta.dat的文件，文件内容如下
-# {&#34;clientDatas&#34;:[{&#34;clientIdentity&#34;:{&#34;clientId&#34;:1001,&#34;destination&#34;:&#34;example&#34;,&#34;filter&#34;:&#34;.*\\..*&#34;},&#34;cursor&#34;:{&#34;identity&#34;:{&#34;slaveId&#34;:-1,&#34;sourceAddress&#34;:{&#34;address&#34;:&#34;localhost&#34;,&#34;port&#34;:3307}},&#34;postion&#34;:{&#34;gtid&#34;:&#34;&#34;,&#34;included&#34;:false,&#34;journalName&#34;:&#34;master-bin.000001&#34;,&#34;position&#34;:0,&#34;serverId&#34;:1,&#34;timestamp&#34;:1554814022000}}}],&#34;destination&#34;:&#34;example&#34;}
-# 在这个文件可以修改position的位置，用来重新订阅binlog</code></pre></div></li>
+# {&quot;clientDatas&quot;:[{&quot;clientIdentity&quot;:{&quot;clientId&quot;:1001,&quot;destination&quot;:&quot;example&quot;,&quot;filter&quot;:&quot;.*\\..*&quot;},&quot;cursor&quot;:{&quot;identity&quot;:{&quot;slaveId&quot;:-1,&quot;sourceAddress&quot;:{&quot;address&quot;:&quot;localhost&quot;,&quot;port&quot;:3307}},&quot;postion&quot;:{&quot;gtid&quot;:&quot;&quot;,&quot;included&quot;:false,&quot;journalName&quot;:&quot;master-bin.000001&quot;,&quot;position&quot;:0,&quot;serverId&quot;:1,&quot;timestamp&quot;:1554814022000}}}],&quot;destination&quot;:&quot;example&quot;}
+# 在这个文件可以修改position的位置，用来重新订阅binlog
 
-<li><p>启动canal</p>
+</code></pre><ul>
+<li>启动canal</li>
+</ul>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ target/canal/bin/startup.sh
 
 <span style="color:#75715e"># 项目启动后不一定会成功，需要在订阅的mysql服务名称的文件夹中打印log，注意你写了多少个服务，就应该在多少个服务中看日志</span>
 $ tail -100f ../logs/example/example.log
 
 <span style="color:#75715e"># 看到以下提示说明启动成功</span>
-c.a.otter.canal.instance.core.AbstractCanalInstance - start successful....</code></pre></div></li>
+c.a.otter.canal.instance.core.AbstractCanalInstance - start successful....
 
-<li><p>客户端订阅代码</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-" data-lang="">public static void main(String args[]) {
-    // 创建链接
-    CanalConnector connector = CanalConnectors
-            .newSingleConnector(new InetSocketAddress(&#34;127.0.0.1&#34;, 11111), &#34;example&#34;, &#34;&#34;, &#34;&#34;);
-    int batchSize = 1000;
-    int emptyCount = 0;
-    try {
-        connector.connect();
-        connector.subscribe(&#34;.*\\..*&#34;);
-        connector.rollback();
-        int totalEmtryCount = 1200;
-        while (emptyCount &lt; totalEmtryCount) {
-            Message message = connector.getWithoutAck(batchSize); // 获取指定数量的数据
-            long batchId = message.getId();
-            int size = message.getEntries().size();
-            if (batchId == -1 || size == 0) {
-                emptyCount++;
-                System.out.println(&#34;empty count : &#34; + emptyCount);
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                emptyCount = 0;
-                // System.out.printf(&#34;message[batchId=%s,size=%s] \n&#34;,
-                // batchId, size);
-                printEntry(message.getEntries());
-            }
-
-            connector.ack(batchId); // 提交确认
-            // connector.rollback(batchId); // 处理失败, 回滚数据
-        }
-
-        System.out.println(&#34;empty too many times, exit&#34;);
-    } finally {
-        connector.disconnect();
-    }
-}
-
-private static void printEntry(List&lt;Entry&gt; entrys) {
-    for (Entry entry : entrys) {
-        if (entry.getEntryType() == EntryType.TRANSACTIONBEGIN
-                || entry.getEntryType() == EntryType.TRANSACTIONEND) {
-            continue;
-        }
-
-        RowChange rowChage = null;
-        try {
-            rowChage = RowChange.parseFrom(entry.getStoreValue());
-        } catch (Exception e) {
-            throw new RuntimeException(&#34;ERROR ## parser of eromanga-event has an error , data:&#34; + entry.toString(),
-                    e);
-        }
-
-        EventType eventType = rowChage.getEventType();
-        System.out.println(String.format(&#34;================&gt; binlog[%s:%s] , name[%s,%s] , eventType : %s&#34;,
-                entry.getHeader().getLogfileName(), entry.getHeader().getLogfileOffset(),
-                entry.getHeader().getSchemaName(), entry.getHeader().getTableName(), eventType));
-
-        for (RowData rowData : rowChage.getRowDatasList()) {
-            if (eventType == EventType.DELETE) {
-                printColumn(rowData.getBeforeColumnsList());
-            } else if (eventType == EventType.INSERT) {
-                printColumn(rowData.getAfterColumnsList());
-            } else {
-                System.out.println(&#34;-------&gt; before&#34;);
-                printColumn(rowData.getBeforeColumnsList());
-                System.out.println(&#34;-------&gt; after&#34;);
-                printColumn(rowData.getAfterColumnsList());
-            }
-        }
-    }
-}
-
-private static void printColumn(List&lt;Column&gt; columns) {
-    for (Column column : columns) {
-        System.out.println(column.getName() + &#34; : &#34; + column.getValue() + &#34;    update=&#34; + column.getUpdated());
-    }
-}</code></pre></div></li>
-
-<li><p>测试
-在master修改数据，在客户端代码中能够接受到修改操作</p>
-
-<h2 id="read-more">Read More</h2>
-
-<p><a href="http://www.importnew.com/25189.html">谈谈对Canal（ 增量数据订阅与消费 ）的理解</a></p></li>
+</code></pre></div><ul>
+<li>客户端订阅代码</li>
 </ul>
+<pre><code class="language-$java" data-lang="$java">
+public static void main(String args[]) {
+        // 创建链接
+        CanalConnector connector = CanalConnectors
+                .newSingleConnector(new InetSocketAddress(&quot;127.0.0.1&quot;, 11111), &quot;example&quot;, &quot;&quot;, &quot;&quot;);
+        int batchSize = 1000;
+        int emptyCount = 0;
+        try {
+            connector.connect();
+            connector.subscribe(&quot;.*\\..*&quot;);
+            connector.rollback();
+            int totalEmtryCount = 1200;
+            while (emptyCount &lt; totalEmtryCount) {
+                Message message = connector.getWithoutAck(batchSize); // 获取指定数量的数据
+                long batchId = message.getId();
+                int size = message.getEntries().size();
+                if (batchId == -1 || size == 0) {
+                    emptyCount++;
+                    System.out.println(&quot;empty count : &quot; + emptyCount);
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    emptyCount = 0;
+                    // System.out.printf(&quot;message[batchId=%s,size=%s] \n&quot;,
+                    // batchId, size);
+                    printEntry(message.getEntries());
+                }
+
+                connector.ack(batchId); // 提交确认
+                // connector.rollback(batchId); // 处理失败, 回滚数据
+            }
+
+            System.out.println(&quot;empty too many times, exit&quot;);
+        } finally {
+            connector.disconnect();
+        }
+    }
+
+    private static void printEntry(List&lt;Entry&gt; entrys) {
+        for (Entry entry : entrys) {
+            if (entry.getEntryType() == EntryType.TRANSACTIONBEGIN
+                    || entry.getEntryType() == EntryType.TRANSACTIONEND) {
+                continue;
+            }
+
+            RowChange rowChage = null;
+            try {
+                rowChage = RowChange.parseFrom(entry.getStoreValue());
+            } catch (Exception e) {
+                throw new RuntimeException(&quot;ERROR ## parser of eromanga-event has an error , data:&quot; + entry.toString(),
+                        e);
+            }
+
+            EventType eventType = rowChage.getEventType();
+            System.out.println(String.format(&quot;================&gt; binlog[%s:%s] , name[%s,%s] , eventType : %s&quot;,
+                    entry.getHeader().getLogfileName(), entry.getHeader().getLogfileOffset(),
+                    entry.getHeader().getSchemaName(), entry.getHeader().getTableName(), eventType));
+
+            for (RowData rowData : rowChage.getRowDatasList()) {
+                if (eventType == EventType.DELETE) {
+                    printColumn(rowData.getBeforeColumnsList());
+                } else if (eventType == EventType.INSERT) {
+                    printColumn(rowData.getAfterColumnsList());
+                } else {
+                    System.out.println(&quot;-------&gt; before&quot;);
+                    printColumn(rowData.getBeforeColumnsList());
+                    System.out.println(&quot;-------&gt; after&quot;);
+                    printColumn(rowData.getAfterColumnsList());
+                }
+            }
+        }
+    }
+
+    private static void printColumn(List&lt;Column&gt; columns) {
+        for (Column column : columns) {
+            System.out.println(column.getName() + &quot; : &quot; + column.getValue() + &quot;    update=&quot; + column.getUpdated());
+        }
+    }
+</code></pre><ul>
+<li>测试
+在master修改数据，在客户端代码中能够接受到修改操作</li>
+</ul>
+<h2 id="read-more">Read More</h2>
+<p><a href="http://www.importnew.com/25189.html">谈谈对Canal（ 增量数据订阅与消费 ）的理解</a></p>
 </article>
 
       
@@ -328,16 +329,13 @@ private static void printColumn(List&lt;Column&gt; columns) {
 
   <aside class="book-toc level-3 fixed">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#canal简介">canal简介</a>
-<ul>
-<li><a href="#canal介绍">canal介绍</a></li>
-<li><a href="#主要的业务场景">主要的业务场景</a></li>
-<li><a href="#工作原理">工作原理</a></li>
-<li><a href="#canal环境部署">Canal环境部署</a></li>
-<li><a href="#read-more">Read More</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#canal介绍">canal介绍</a></li>
+    <li><a href="#主要的业务场景">主要的业务场景</a></li>
+    <li><a href="#工作原理">工作原理</a></li>
+    <li><a href="#canal环境部署">Canal环境部署</a></li>
+    <li><a href="#read-more">Read More</a></li>
+  </ul>
 </nav>
   </aside>
 

@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Innodb Lock Wait Timeout | MySQL</title>
+
+
+<link rel="stylesheet" href="/MySQL/book.min.a2277534155c5e81ce2c8ca6a4cd295525f25c75788a2e4e72c3310491c743b1.css">
+
+
+
+
+<link rel="icon" href="/MySQL/favicon.png" type="image/x-icon">
+
+
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+</head>
+
+<body>
+  <input type="checkbox" style="display: none" id="menu-control" />
+  <main class="flex container">
+
+    <aside class="book-menu fixed">
+      <nav>
+<h2 class="book-brand">
+  <a href="https://hello-world-example.github.io/MySQL/">MySQL</a>
+</h2>
+
+
+
+
+
+
+    
+  
+  
+  
+
+  <style>
+  nav ul a[href$="\2fMySQL\2f docs\2f Better\2finnodb_lock_wait_timeout\2f "] {
+      color: #004ed0;
+  }
+  </style>
+
+<ul>
+<li><strong>Install</strong>
+<ul>
+<li><a href="/MySQL/docs/Install/Mac-Multiple-Instance/">MAC 多实例安装 和 主从配置</a></li>
+<li><a href="/MySQL/docs/Install/Docker-Multiple-Instance/">使用 Docker 搭建主从测试</a></li>
+</ul>
+</li>
+<li><strong>JDBC</strong>
+<ul>
+<li><a href="/MySQL/docs/Jdbc/FetchSize/">FetchSize 处理大结果集</a></li>
+<li><a href="/MySQL/docs/Jdbc/DataSource/">DataSource 配置</a></li>
+</ul>
+</li>
+<li><strong>Better</strong>
+<ul>
+<li><a href="/MySQL/docs/Better/innodb_lock_wait_timeout/">锁等待时间</a></li>
+</ul>
+</li>
+<li><strong>Binlog</strong>
+<ul>
+<li><a href="/MySQL/docs/Binlog/Quick-Start/">快速入门</a></li>
+<li><a href="/MySQL/docs/Binlog/Gtid/">GTID</a></li>
+<li><a href="/MySQL/docs/Binlog/binlog-protocol/">_binlog 协议</a></li>
+<li><a href="/MySQL/docs/Binlog/parse-binlog-by-java/">_Java 解析 binlog</a></li>
+<li><a href="/MySQL/docs/Binlog/parse-binlog-by-canal/">_Canal 订阅 binlog</a></li>
+</ul>
+</li>
+<li><strong>Canal</strong>
+<ul>
+<li><a href="/MySQL/docs/canal/introduce/">Canal 简介</a></li>
+<li><a href="/MySQL/docs/canal/data-type/">数据格式</a></li>
+</ul>
+</li>
+<li><strong>其他</strong>
+<ul>
+<li><a href="/MySQL/docs/rds_dbsync/">MySQL 全量同步 Postgres</a></li>
+</ul>
+</li>
+</ul>
+
+
+
+
+
+
+
+</nav>
+
+
+<script>
+(function() {
+  var menu = document.querySelector("aside.book-menu nav");
+  addEventListener("beforeunload", function(event) {
+    localStorage.setItem("menu.scrollTop", menu.scrollTop);
+  });
+  menu.scrollTop = localStorage.getItem("menu.scrollTop");
+})();
+</script>
+
+    </aside>
+
+    <div class="book-page">
+      <header class="flex align-center justify-between book-header">
+  <label for="menu-control">
+    <img src="/MySQL/svg/menu.svg" alt="Menu" />
+  </label>
+  <strong>Innodb Lock Wait Timeout</strong>
+</header>
+
+      
+<article class="markdown"><h1 id="锁等待超时">锁等待超时</h1>
+<h3 id="锁超时lock-wait-timeout-和-死锁dead-lock">锁超时(Lock wait timeout) 和 死锁(Dead Lock)</h3>
+<ul>
+<li><strong>Lock wait timeout</strong>
+<ul>
+<li>后面的事务等待前面处理的事务释放锁，等待时间超过了<code>innodb_lock_wait_timeout</code></li>
+<li>在超时时间内，后来的事务会一直等待前面的事务释放锁，会导致程序阻塞</li>
+<li><strong>当发生锁等待超时时，将回滚当前语句（而不是整个事务）</strong></li>
+<li><code>ERROR 1205 (HY000): Lock wait timeout exceeded; try restarting transaction</code> 异常</li>
+<li><strong>出现的原因：</strong> 事务过大，锁占用的时间过长</li>
+</ul>
+</li>
+<li><strong>Dead Lock</strong> 死锁
+<ul>
+<li>两个事务互相等待对方释放相同资源的锁</li>
+<li>死锁产生后会立即失败，随机回滚其中一个事务（后操作造成死锁的事务）</li>
+<li>当 <code>innodb_deadlock_detect</code> 被禁用时，死锁的超时时间即 <code>innodb_lock_wait_timeout</code></li>
+<li><code>ERROR 1213 (40001): Deadlock found when trying to get lock; try restarting transaction</code></li>
+<li><strong>出现的原因：</strong> 多个事务对同一批数据进行操作时，加锁顺序不一致</li>
+</ul>
+</li>
+</ul>
+<h3 id="innodb_lock_wait_timeout-和-lock_wait_timeout">innodb_lock_wait_timeout 和 lock_wait_timeout</h3>
+<blockquote>
+<ul>
+<li><a href="https://dev.mysql.com/doc/refman/5.7/en/server-system-variable-reference.html">Server System Variable Reference</a>
+<ul>
+<li><a href="https://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html#sysvar_innodb_lock_wait_timeout">innodb_lock_wait_timeout</a></li>
+<li><a href="https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html#sysvar_lock_wait_timeout">lock_wait_timeout</a></li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<ul>
+<li><code>innodb_lock_wait_timeout</code>
+<ul>
+<li>针对行级锁，不适用与表锁</li>
+<li>单位秒，默认 <code>50</code>，可选值 1 ~ 1073741824</li>
+<li>对于高度交互的应用程序 或 <strong>OLTP系统，可能会降低此值，以便快速响应用户反馈</strong></li>
+<li>对于等待其他大型插入或更新操作完成的数据仓库，可以增加此值</li>
+</ul>
+</li>
+<li><code>lock_wait_timeout</code>
+<ul>
+<li>DDL 和 DML 对 表、视图、存储过程、函数 的操作</li>
+<li>常见如表锁等</li>
+<li>单位秒，默认 31536000 (1年)，可选值 1 ~ 31536000</li>
+</ul>
+</li>
+</ul>
+<h3 id="修改-innodb_lock_wait_timeout">修改 innodb_lock_wait_timeout</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql"><span style="color:#75715e"># 锁超时时间设置为 5s
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">set</span> session innodb_lock_wait_timeout <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span>;
+
+mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</span> variables <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;%lock_wait_timeout%&#39;</span>;
+<span style="color:#f92672">+--------------------------+----------+</span>
+<span style="color:#f92672">|</span> Variable_name            <span style="color:#f92672">|</span> Value    <span style="color:#f92672">|</span>
+<span style="color:#f92672">+--------------------------+----------+</span>
+<span style="color:#f92672">|</span> innodb_lock_wait_timeout <span style="color:#f92672">|</span> <span style="color:#ae81ff">5</span>       <span style="color:#f92672">|</span>
+<span style="color:#f92672">|</span> lock_wait_timeout        <span style="color:#f92672">|</span> <span style="color:#ae81ff">31536000</span> <span style="color:#f92672">|</span>
+<span style="color:#f92672">+--------------------------+----------+</span>
+</code></pre></div><h2 id="测试场景">测试场景</h2>
+<h3 id="数据准备">数据准备</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql"><span style="color:#75715e">-- 创建测试表
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">TABLE</span> <span style="color:#f92672">`</span>T_TEST<span style="color:#f92672">`</span> (
+  <span style="color:#f92672">`</span>ID<span style="color:#f92672">`</span> <span style="color:#66d9ef">bigint</span>(<span style="color:#ae81ff">11</span>) <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span> <span style="color:#66d9ef">AUTO_INCREMENT</span>,
+  <span style="color:#f92672">`</span>UNIQ<span style="color:#f92672">`</span> <span style="color:#66d9ef">varchar</span>(<span style="color:#ae81ff">20</span>) <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span>,
+  <span style="color:#f92672">`</span>NAME<span style="color:#f92672">`</span> <span style="color:#66d9ef">varchar</span>(<span style="color:#ae81ff">20</span>) <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span>,
+  <span style="color:#66d9ef">PRIMARY</span> <span style="color:#66d9ef">KEY</span> (<span style="color:#f92672">`</span>ID<span style="color:#f92672">`</span>),
+  <span style="color:#66d9ef">UNIQUE</span> <span style="color:#66d9ef">KEY</span> <span style="color:#f92672">`</span>UNIQ_FILED_UNIQ<span style="color:#f92672">`</span> (<span style="color:#f92672">`</span>UNIQ<span style="color:#f92672">`</span>) <span style="color:#66d9ef">USING</span> BTREE
+) <span style="color:#66d9ef">ENGINE</span><span style="color:#f92672">=</span>InnoDB;
+
+<span style="color:#75715e">-- 插入测试数据
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">insert</span> <span style="color:#66d9ef">into</span> <span style="color:#f92672">`</span>T_TEST<span style="color:#f92672">`</span> (<span style="color:#f92672">`</span>ID<span style="color:#f92672">`</span>, <span style="color:#f92672">`</span>UNIQ<span style="color:#f92672">`</span>, <span style="color:#f92672">`</span>NAME<span style="color:#f92672">`</span>) <span style="color:#66d9ef">values</span> ( <span style="color:#ae81ff">1</span>, <span style="color:#e6db74">&#39;Kail1&#39;</span>, <span style="color:#e6db74">&#39;Kail1&#39;</span>);
+<span style="color:#66d9ef">insert</span> <span style="color:#66d9ef">into</span> <span style="color:#f92672">`</span>T_TEST<span style="color:#f92672">`</span> (<span style="color:#f92672">`</span>ID<span style="color:#f92672">`</span>, <span style="color:#f92672">`</span>UNIQ<span style="color:#f92672">`</span>, <span style="color:#f92672">`</span>NAME<span style="color:#f92672">`</span>) <span style="color:#66d9ef">values</span> ( <span style="color:#ae81ff">2</span>, <span style="color:#e6db74">&#39;Kail2&#39;</span>, <span style="color:#e6db74">&#39;Kail2&#39;</span>);
+</code></pre></div><h3 id="修改隔离级别">修改隔离级别</h3>
+<p>MySQL 默认的隔离级别是 <strong>可重复读</strong>（<code>REPEATABLE-READ</code>），为了和公司设置保持一致，这里改为 <strong>读提交</strong>（<code>READ-COMMITTED</code>）</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql"><span style="color:#75715e">-- select @@global.tx_isolation,@@tx_isolation; 也可以
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">select</span> <span style="color:#f92672">@@</span>global.transaction_isolation,<span style="color:#f92672">@@</span>transaction_isolation;
+<span style="color:#f92672">+--------------------------------+-------------------------+</span>
+<span style="color:#f92672">|</span> <span style="color:#f92672">@@</span>global.transaction_isolation <span style="color:#f92672">|</span> <span style="color:#f92672">@@</span>transaction_isolation <span style="color:#f92672">|</span>
+<span style="color:#f92672">+--------------------------------+-------------------------+</span>
+<span style="color:#f92672">|</span> REPEATABLE<span style="color:#f92672">-</span><span style="color:#66d9ef">READ</span>                <span style="color:#f92672">|</span> REPEATABLE<span style="color:#f92672">-</span><span style="color:#66d9ef">READ</span>         <span style="color:#f92672">|</span>
+<span style="color:#f92672">+--------------------------------+-------------------------+</span>
+
+mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</span> session variables <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;%tx%&#39;</span>;
+<span style="color:#f92672">+---------------+-----------------+</span>
+<span style="color:#f92672">|</span> Variable_name <span style="color:#f92672">|</span> Value           <span style="color:#f92672">|</span>
+<span style="color:#f92672">+---------------+-----------------+</span>
+<span style="color:#f92672">|</span> tx_isolation  <span style="color:#f92672">|</span> REPEATABLE<span style="color:#f92672">-</span><span style="color:#66d9ef">READ</span> <span style="color:#f92672">|</span>
+<span style="color:#f92672">|</span> tx_read_only  <span style="color:#f92672">|</span> OFF             <span style="color:#f92672">|</span>
+<span style="color:#f92672">+---------------+-----------------+</span>
+
+<span style="color:#75715e">-- 设置 Session 级别的隔离级别，用于测试（设置的时候 READ COMMITTED 中间没有横岗）
+</span><span style="color:#75715e">-- 全局级别 SET GLOBAL TRANSACTION ISOLATION LEVEL xxx;
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">SET</span> SESSION TRANSACTION ISOLATION LEVEL <span style="color:#66d9ef">READ</span> COMMITTED;
+</code></pre></div><h3 id="事务提交方式">事务提交方式</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql">mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">set</span> session autocommit<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>;
+  
+<span style="color:#75715e">-- 关闭自动提交
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</span> session variables <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;autocommit&#39;</span>;
+<span style="color:#f92672">+---------------+-------+</span>
+<span style="color:#f92672">|</span> Variable_name <span style="color:#f92672">|</span> Value <span style="color:#f92672">|</span>
+<span style="color:#f92672">+---------------+-------+</span>
+<span style="color:#f92672">|</span> autocommit    <span style="color:#f92672">|</span> OFF   <span style="color:#f92672">|</span>
+<span style="color:#f92672">+---------------+-------+</span>
+</code></pre></div><h3 id="测试前提">测试前提</h3>
+<ul>
+<li>需要分别开启两个会话，创造多事务环境</li>
+<li>关闭事务自动提交，通过 <code>commit</code> 自动提交</li>
+</ul>
+<h3 id="场景死锁-立即失败">场景：死锁 立即失败</h3>
+<ul>
+<li><code>ERROR 1213 (40001): Deadlock found when trying to get lock; try restarting transaction</code></li>
+<li>表中分别有两行数据</li>
+<li>事务1 先更新 1 后更新 2，事务2 先更新 2 后更新 1，以此来创造死锁</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql"><span style="color:#75715e">-- 😀 事务1： 操作第一条数据， 对第一条数据加锁
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">UPDATE</span> T_TEST <span style="color:#66d9ef">SET</span> NAME<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;tx111&#39;</span> <span style="color:#66d9ef">WHERE</span> ID <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+Query OK, <span style="color:#ae81ff">1</span> row <span style="color:#a6e22e">affected</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+<span style="color:#75715e">-- ☠️ 事务2： 操作第二条数据， 对第二条数据加锁
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">UPDATE</span> T_TEST <span style="color:#66d9ef">SET</span> NAME<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;tx222&#39;</span> <span style="color:#66d9ef">WHERE</span> ID <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;
+Query OK, <span style="color:#ae81ff">1</span> row <span style="color:#a6e22e">affected</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+
+
+<span style="color:#75715e">-- 😀 事务1：第2条数据已经被 事务2 占用，这里不会立即返回，❤❤ 阻塞等待 ❤❤
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">UPDATE</span> T_TEST <span style="color:#66d9ef">SET</span> NAME<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;tx111&#39;</span> <span style="color:#66d9ef">WHERE</span> ID <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;
+<span style="color:#75715e">-- ☠️☠️☠️☠️ 事务2：第1条数据已经被 事务1 占用，这里检查到死锁，❤❤ 立即报错 ❤❤ ☠️☠️☠️☠️
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">UPDATE</span> T_TEST <span style="color:#66d9ef">SET</span> NAME<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;tx222&#39;</span> <span style="color:#66d9ef">WHERE</span> ID <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+ERROR <span style="color:#ae81ff">1213</span> (<span style="color:#ae81ff">40001</span>): Deadlock found <span style="color:#66d9ef">when</span> trying <span style="color:#66d9ef">to</span> get <span style="color:#66d9ef">lock</span>; try restarting transaction
+<span style="color:#75715e">-- 😀 事务1（第一个会话窗口）：解除阻塞，输出影响的行数
+</span><span style="color:#75715e"></span>Query OK, <span style="color:#ae81ff">1</span> row <span style="color:#a6e22e">affected</span> (<span style="color:#ae81ff">14</span>.<span style="color:#ae81ff">25</span> sec)
+
+
+<span style="color:#75715e">-- 😀 会话窗口1
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> commit;
+<span style="color:#75715e">-- ☠️ 会话窗口2
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> commit;
+
+
+<span style="color:#75715e">-- 查询结果，因为事务二被回滚，结果为事务1 的更新结果
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">SELECT</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">FROM</span> T_TEST;
+<span style="color:#f92672">+----+-------+-------+</span>
+<span style="color:#f92672">|</span> ID <span style="color:#f92672">|</span> UNIQ  <span style="color:#f92672">|</span> NAME  <span style="color:#f92672">|</span>
+<span style="color:#f92672">+----+-------+-------+</span>
+<span style="color:#f92672">|</span>  <span style="color:#ae81ff">1</span> <span style="color:#f92672">|</span> Kail1 <span style="color:#f92672">|</span> tx111 <span style="color:#f92672">|</span>
+<span style="color:#f92672">|</span>  <span style="color:#ae81ff">2</span> <span style="color:#f92672">|</span> Kail2 <span style="color:#f92672">|</span> tx111 <span style="color:#f92672">|</span>
+<span style="color:#f92672">+----+-------+-------+</span>
+</code></pre></div><h3 id="场景锁超时-阻塞等待">场景：锁超时 阻塞等待</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql"><span style="color:#75715e">-- 先把超时时间设置为 5 秒
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">set</span> session innodb_lock_wait_timeout <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span>;
+
+<span style="color:#75715e">-- 😀 事务1： 操作第一条数据， 对第一条数据加锁
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">UPDATE</span> T_TEST <span style="color:#66d9ef">SET</span> NAME<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;tx-111&#39;</span> <span style="color:#66d9ef">WHERE</span> ID <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+Query OK, <span style="color:#ae81ff">1</span> row <span style="color:#a6e22e">affected</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+<span style="color:#75715e">-- ☠️ 事务2： 也操作第一条数据，❤❤❤ 因为 事务1 还没提交，这里会等待，直到超时 ❤❤❤
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">UPDATE</span> T_TEST <span style="color:#66d9ef">SET</span> NAME<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;tx-222&#39;</span> <span style="color:#66d9ef">WHERE</span> ID <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+<span style="color:#75715e">-- 5 秒后会报下面这个错
+</span><span style="color:#75715e"></span>ERROR <span style="color:#ae81ff">1205</span> (HY000): <span style="color:#66d9ef">Lock</span> wait timeout exceeded; try restarting transaction
+</code></pre></div><h3 id="-场景锁超时-仅回滚当前语句">❤ 场景：锁超时 仅回滚当前语句</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql"><span style="color:#75715e">-- 先把超时时间设置为 5 秒
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">set</span> session innodb_lock_wait_timeout <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span>;
+
+<span style="color:#75715e">-- 😀 事务1： 操作第一条数据， 对第一条数据加锁
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">UPDATE</span> T_TEST <span style="color:#66d9ef">SET</span> NAME<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;tx-1&#39;</span> <span style="color:#66d9ef">WHERE</span> ID <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+Query OK, <span style="color:#ae81ff">1</span> row <span style="color:#a6e22e">affected</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+<span style="color:#75715e">-- ☠️ 事务2： 先更新第二条数据，立即返回
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">UPDATE</span> T_TEST <span style="color:#66d9ef">SET</span> NAME<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;tx-2&#39;</span> <span style="color:#66d9ef">WHERE</span> ID <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;
+Query OK, <span style="color:#ae81ff">1</span> row <span style="color:#a6e22e">affected</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+<span style="color:#75715e">-- ☠️ 事务2： 再更新第一条数据，❤❤❤ 阻塞直到超时 ❤❤❤
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">UPDATE</span> T_TEST <span style="color:#66d9ef">SET</span> NAME<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;tx-2&#39;</span> <span style="color:#66d9ef">WHERE</span> ID <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+ERROR <span style="color:#ae81ff">1205</span> (HY000): <span style="color:#66d9ef">Lock</span> wait timeout exceeded; try restarting transaction
+
+<span style="color:#75715e">-- 😀 事务1： 能看到自己刚刚更新的结果，看不到事务 2
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">SELECT</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">FROM</span> T_TEST;
+<span style="color:#f92672">+----+-------+-------+</span>
+<span style="color:#f92672">|</span> ID <span style="color:#f92672">|</span> UNIQ  <span style="color:#f92672">|</span> NAME  <span style="color:#f92672">|</span>
+<span style="color:#f92672">+----+-------+-------+</span>
+<span style="color:#f92672">|</span>  <span style="color:#ae81ff">1</span> <span style="color:#f92672">|</span> Kail1 <span style="color:#f92672">|</span> tx<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>  <span style="color:#f92672">|</span>
+<span style="color:#f92672">|</span>  <span style="color:#ae81ff">2</span> <span style="color:#f92672">|</span> Kail2 <span style="color:#f92672">|</span> tx111 <span style="color:#f92672">|</span>
+<span style="color:#f92672">+----+-------+-------+</span>
+<span style="color:#75715e">-- ☠️ 事务2： 能看到自己刚刚更新的结果，看不到事务 1
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">SELECT</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">FROM</span> T_TEST;
+<span style="color:#f92672">+----+-------+-------+</span>
+<span style="color:#f92672">|</span> ID <span style="color:#f92672">|</span> UNIQ  <span style="color:#f92672">|</span> NAME  <span style="color:#f92672">|</span>
+<span style="color:#f92672">+----+-------+-------+</span>
+<span style="color:#f92672">|</span>  <span style="color:#ae81ff">1</span> <span style="color:#f92672">|</span> Kail1 <span style="color:#f92672">|</span> tx111 <span style="color:#f92672">|</span>
+<span style="color:#f92672">|</span>  <span style="color:#ae81ff">2</span> <span style="color:#f92672">|</span> Kail2 <span style="color:#f92672">|</span> tx<span style="color:#f92672">-</span><span style="color:#ae81ff">2</span>  <span style="color:#f92672">|</span>
+<span style="color:#f92672">+----+-------+-------+</span>
+
+<span style="color:#75715e">-- 😀 事务1： 提交事务
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> commit;
+<span style="color:#75715e">-- ☠️ 事务2： 提交事务
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> commit;
+
+<span style="color:#75715e">-- 最终效果，除了 事务2 锁超时执行失败的语句，其他两条语句实际上都执行成功
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">SELECT</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">FROM</span> T_TEST;
+<span style="color:#f92672">+----+-------+------+</span>
+<span style="color:#f92672">|</span> ID <span style="color:#f92672">|</span> UNIQ  <span style="color:#f92672">|</span> NAME <span style="color:#f92672">|</span>
+<span style="color:#f92672">+----+-------+------+</span>
+<span style="color:#f92672">|</span>  <span style="color:#ae81ff">1</span> <span style="color:#f92672">|</span> Kail1 <span style="color:#f92672">|</span> tx<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">|</span>
+<span style="color:#f92672">|</span>  <span style="color:#ae81ff">2</span> <span style="color:#f92672">|</span> Kail2 <span style="color:#f92672">|</span> tx<span style="color:#f92672">-</span><span style="color:#ae81ff">2</span> <span style="color:#f92672">|</span>
+<span style="color:#f92672">+----+-------+------+</span>
+</code></pre></div><h4 id="小结---仅回滚当前语句">小结 - 仅回滚当前语句</h4>
+<ul>
+<li>正如官方文档所说： <strong>当发生锁等待超时时，将回滚当前语句（而不是整个事务）</strong></li>
+<li>实际业务系统中<strong>如果出现锁超时</strong>，<strong>一个事务中只回滚一部分，会导致数据不一致吗</strong>？</li>
+<li>答案是 <strong>不会</strong>
+<ul>
+<li>因为事务正确的使用方式并不是上面在 Console 中的操作方式</li>
+<li>实际操作方式是： 如果 SQL 执行成功 <code>commit</code>，如果执行不成功 <code>rollback</code>，整个事务就会回滚</li>
+<li>而上面的操作，不管是否成功，全都 <code>commit</code> 了，这种情况在实际业务编码中并不常见</li>
+</ul>
+</li>
+<li>侧面也说明，假如业务中允许在锁超时的时候部分提交，其实是可以实现的</li>
+<li>当前实验场景中的 <strong>“回滚当前语句”</strong> 如果改成 <strong>“当前语句执行失败”</strong> 可能会更好，减少理解上的误区</li>
+</ul>
+<h2 id="问题排查">问题排查</h2>
+<h3 id="查看当前等待的事务">查看当前等待的事务</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql">mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">SELECT</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">FROM</span> information_schema.INNODB_TRX <span style="color:#66d9ef">WHERE</span> trx_state<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;LOCK WAIT&#39;</span> <span style="color:#960050;background-color:#1e0010">\</span>G
+<span style="color:#f92672">***************************</span> <span style="color:#ae81ff">1</span>. row <span style="color:#f92672">***************************</span>
+                    trx_id: <span style="color:#ae81ff">21096</span>
+                 trx_state: <span style="color:#66d9ef">LOCK</span> WAIT
+               trx_started: <span style="color:#ae81ff">2020</span><span style="color:#f92672">-</span><span style="color:#ae81ff">03</span><span style="color:#f92672">-</span><span style="color:#ae81ff">27</span> <span style="color:#ae81ff">11</span>:<span style="color:#ae81ff">04</span>:<span style="color:#ae81ff">54</span>
+     trx_requested_lock_id: <span style="color:#ae81ff">21096</span>:<span style="color:#ae81ff">51</span>:<span style="color:#ae81ff">3</span>:<span style="color:#ae81ff">11</span>
+          trx_wait_started: <span style="color:#ae81ff">2020</span><span style="color:#f92672">-</span><span style="color:#ae81ff">03</span><span style="color:#f92672">-</span><span style="color:#ae81ff">27</span> <span style="color:#ae81ff">11</span>:<span style="color:#ae81ff">05</span>:<span style="color:#ae81ff">49</span>
+                trx_weight: <span style="color:#ae81ff">2</span>
+       trx_mysql_thread_id: <span style="color:#ae81ff">25</span>
+                 trx_query: <span style="color:#66d9ef">UPDATE</span> T_TEST <span style="color:#66d9ef">SET</span> NAME<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;tx-222&#39;</span> <span style="color:#66d9ef">WHERE</span> ID <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
+       trx_operation_state: <span style="color:#66d9ef">starting</span> <span style="color:#66d9ef">index</span> <span style="color:#66d9ef">read</span>
+         trx_tables_in_use: <span style="color:#ae81ff">1</span>
+         trx_tables_locked: <span style="color:#ae81ff">1</span>
+          trx_lock_structs: <span style="color:#ae81ff">2</span>
+     trx_lock_memory_bytes: <span style="color:#ae81ff">1136</span>
+           trx_rows_locked: <span style="color:#ae81ff">2</span>
+         trx_rows_modified: <span style="color:#ae81ff">0</span>
+   trx_concurrency_tickets: <span style="color:#ae81ff">0</span>
+       trx_isolation_level: <span style="color:#66d9ef">READ</span> COMMITTED
+         trx_unique_checks: <span style="color:#ae81ff">1</span>
+    trx_foreign_key_checks: <span style="color:#ae81ff">1</span>
+trx_last_foreign_key_error: <span style="color:#66d9ef">NULL</span>
+ trx_adaptive_hash_latched: <span style="color:#ae81ff">0</span>
+ trx_adaptive_hash_timeout: <span style="color:#ae81ff">0</span>
+          trx_is_read_only: <span style="color:#ae81ff">0</span>
+trx_autocommit_non_locking: <span style="color:#ae81ff">0</span>
+</code></pre></div><h3 id="lock-wait-的事务在等谁">LOCK WAIT 的事务在等谁</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql">mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">SELECT</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">FROM</span> information_schema.INNODB_LOCK_WAITS;
+<span style="color:#f92672">+-------------------+-------------------+-----------------+------------------+</span>
+<span style="color:#f92672">|</span> requesting_trx_id <span style="color:#f92672">|</span> requested_lock_id <span style="color:#f92672">|</span> blocking_trx_id <span style="color:#f92672">|</span> blocking_lock_id <span style="color:#f92672">|</span>
+<span style="color:#f92672">+-------------------+-------------------+-----------------+------------------+</span>
+<span style="color:#f92672">|</span> <span style="color:#ae81ff">21096</span>             <span style="color:#f92672">|</span> <span style="color:#ae81ff">21096</span>:<span style="color:#ae81ff">51</span>:<span style="color:#ae81ff">3</span>:<span style="color:#ae81ff">11</span>     <span style="color:#f92672">|</span> <span style="color:#ae81ff">21095</span>           <span style="color:#f92672">|</span> <span style="color:#ae81ff">21095</span>:<span style="color:#ae81ff">51</span>:<span style="color:#ae81ff">3</span>:<span style="color:#ae81ff">11</span>    <span style="color:#f92672">|</span>
+<span style="color:#f92672">+-------------------+-------------------+-----------------+------------------+</span>
+<span style="color:#ae81ff">1</span> row <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">set</span>, <span style="color:#ae81ff">1</span> <span style="color:#a6e22e">warning</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">01</span> sec)
+
+<span style="color:#75715e">-- 综合 information_schema.INNODB_LOCK_WAITS 和 information_schema.INNODB_TRX
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">SELECT</span>
+	r.trx_id waiting_trx_id ,
+	r.trx_mysql_thread_id waiting_thread ,
+	r.trx_query waiting_query ,
+	b.trx_id blocking_trx_id ,
+	b.trx_mysql_thread_id blocking_thread ,
+	b.trx_query blocking_query
+<span style="color:#66d9ef">FROM</span>
+	information_schema.INNODB_LOCK_WAITS w
+<span style="color:#66d9ef">INNER</span> <span style="color:#66d9ef">JOIN</span> information_schema.INNODB_TRX b <span style="color:#66d9ef">ON</span> b.trx_id <span style="color:#f92672">=</span> w.blocking_trx_id
+<span style="color:#66d9ef">INNER</span> <span style="color:#66d9ef">JOIN</span> information_schema.INNODB_TRX r <span style="color:#66d9ef">ON</span> r.trx_id <span style="color:#f92672">=</span> w.requesting_trx_id <span style="color:#960050;background-color:#1e0010">\</span>G
+<span style="color:#f92672">***************************</span> <span style="color:#ae81ff">1</span>. row <span style="color:#f92672">***************************</span>
+ waiting_trx_id: <span style="color:#ae81ff">21104</span>
+ waiting_thread: <span style="color:#ae81ff">25</span>
+  waiting_query: <span style="color:#66d9ef">UPDATE</span> T_TEST <span style="color:#66d9ef">SET</span> NAME<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;tx-222&#39;</span> <span style="color:#66d9ef">WHERE</span> ID <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
+blocking_trx_id: <span style="color:#ae81ff">21102</span>
+blocking_thread: <span style="color:#ae81ff">24</span>
+ blocking_query: <span style="color:#66d9ef">NULL</span>
+<span style="color:#ae81ff">1</span> row <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">set</span>, <span style="color:#ae81ff">1</span> <span style="color:#a6e22e">warning</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</code></pre></div><h3 id="找到阻塞的源头">找到阻塞的源头</h3>
+<blockquote>
+<ul>
+<li>
+<p>可以找到 阻塞源头 是哪个事务</p>
+</li>
+<li>
+<p>无法找到 阻塞源头 是哪条 SQL</p>
+</li>
+<li>
+<p><strong>可以找到 阻塞源头 的事务执行的 最后一条SQL</strong></p>
+<ul>
+<li>
+<p><a href="https://www.cnblogs.com/kerrycode/p/8948335.html">MySQL Innodb如何找出阻塞事务源头SQL</a></p>
+</li>
+<li>
+<p><a href="https://www.cnblogs.com/kerrycode/p/5821413.html">为什么数据库有时候不能定位阻塞（Blocker）源头的SQL语句</a></p>
+</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql"><span style="color:#66d9ef">SELECT</span>
+     state.SQL_TEXT, <span style="color:#75715e">-- 阻塞源头 的事务执行的 最后一条SQL
+</span><span style="color:#75715e"></span>     state.DIGEST_TEXT,
+     thread.PROCESSLIST_ID,
+     thread.PROCESSLIST_USER, <span style="color:#75715e">-- 来源用户
+</span><span style="color:#75715e"></span>     thread.PROCESSLIST_HOST, <span style="color:#75715e">-- 来源主机
+</span><span style="color:#75715e"></span>     thread.PROCESSLIST_DB,
+     tx.trx_id,
+     tx.trx_state,
+     tx.trx_started           <span style="color:#75715e">-- 开始时间
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">FROM</span>
+     performance_schema.events_statements_current state
+<span style="color:#66d9ef">INNER</span> <span style="color:#66d9ef">JOIN</span> performance_schema.threads thread <span style="color:#66d9ef">ON</span> state.thread_id <span style="color:#f92672">=</span> thread.thread_id
+<span style="color:#66d9ef">INNER</span> <span style="color:#66d9ef">JOIN</span> information_schema.INNODB_TRX tx <span style="color:#66d9ef">ON</span> thread.processlist_id <span style="color:#f92672">=</span> tx.trx_mysql_thread_id
+<span style="color:#66d9ef">WHERE</span>
+<span style="color:#75715e">-- 根据事务 ID 查询
+</span><span style="color:#75715e"></span>	tx.trx_id <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;21102&#39;</span>
+<span style="color:#75715e">-- 根据 show processlist 中的 ID 查询
+</span><span style="color:#75715e">-- tx.trx_mysql_thread_id = &#39;processlist ID&#39;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">ORDER</span> <span style="color:#66d9ef">BY</span>
+	tx.trx_started <span style="color:#960050;background-color:#1e0010">\</span>G
+</code></pre></div><h3 id="general_log-开启记录">general_log 开启记录</h3>
+<ul>
+<li><code>general_log</code> 将所有到达 MySQL Server 的 SQL 语句记录下来</li>
+<li>但是一般不会开启开功能，因为log的量会非常庞大</li>
+<li>个别情况下可能会临时的开一会儿以供排障使用</li>
+<li>相关参数有
+<ul>
+<li><code>general_log</code> 日志是否开启</li>
+<li><code>log_output</code> 日志输出类型
+<ul>
+<li><code>FILE</code> 日志写到 <code>general_log_file</code> 指定的文件中</li>
+<li><code>TABLE</code> 日志写到 <code>mysql.slow_log</code> 表中</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql">mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</span> variables <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;%log_output%&#39;</span>;
+<span style="color:#f92672">+---------------+-------+</span>
+<span style="color:#f92672">|</span> Variable_name <span style="color:#f92672">|</span> Value <span style="color:#f92672">|</span>
+<span style="color:#f92672">+---------------+-------+</span>
+<span style="color:#f92672">|</span> log_output    <span style="color:#f92672">|</span> FILE  <span style="color:#f92672">|</span>
+<span style="color:#f92672">+---------------+-------+</span>
+
+mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</span> variables <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;%general_log%&#39;</span>;
+<span style="color:#f92672">+------------------+---------------------------------+</span>
+<span style="color:#f92672">|</span> Variable_name    <span style="color:#f92672">|</span> Value                           <span style="color:#f92672">|</span>
+<span style="color:#f92672">+------------------+---------------------------------+</span>
+<span style="color:#f92672">|</span> general_log      <span style="color:#f92672">|</span> OFF                             <span style="color:#f92672">|</span>
+<span style="color:#f92672">|</span> general_log_file <span style="color:#f92672">|</span> <span style="color:#f92672">/</span>var<span style="color:#f92672">/</span>lib<span style="color:#f92672">/</span>mysql<span style="color:#f92672">/</span><span style="color:#ae81ff">35</span>cb5b325ec1.log <span style="color:#f92672">|</span>
+<span style="color:#f92672">+------------------+---------------------------------+</span>
+
+<span style="color:#75715e">-- 开启 general_log
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">set</span> GLOBAL general_log <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;ON&#39;</span>;
+
+<span style="color:#75715e">-- 通过 INNODB_TRX 和 INNODB_LOCK_WAITS 表，找到阻塞的 trx_mysql_thread_id
+</span><span style="color:#75715e">-- 过滤出事务中指定的 SQL
+</span><span style="color:#75715e"></span><span style="color:#960050;background-color:#1e0010">$</span> tail <span style="color:#f92672">-</span>fn <span style="color:#ae81ff">400</span> <span style="color:#f92672">/</span>var<span style="color:#f92672">/</span>lib<span style="color:#f92672">/</span>mysql<span style="color:#f92672">/</span><span style="color:#ae81ff">35</span>cb5b325ec1.log <span style="color:#f92672">|</span> grep <span style="color:#e6db74">&#34;{trx_mysql_thread_id}&#34;</span>
+<span style="color:#66d9ef">Time</span>                              Id Command    Argument
+..
+<span style="color:#ae81ff">2020</span><span style="color:#f92672">-</span><span style="color:#ae81ff">03</span><span style="color:#f92672">-</span><span style="color:#ae81ff">28</span>T07:<span style="color:#ae81ff">08</span>:<span style="color:#ae81ff">11</span>.<span style="color:#ae81ff">002374</span>Z        <span style="color:#ae81ff">33</span> Connect   root<span style="color:#f92672">@</span>localhost <span style="color:#66d9ef">on</span> test <span style="color:#66d9ef">using</span> Socket
+<span style="color:#ae81ff">2020</span><span style="color:#f92672">-</span><span style="color:#ae81ff">03</span><span style="color:#f92672">-</span><span style="color:#ae81ff">28</span>T07:<span style="color:#ae81ff">08</span>:<span style="color:#ae81ff">11</span>.<span style="color:#ae81ff">005286</span>Z        <span style="color:#ae81ff">33</span> Query     <span style="color:#66d9ef">show</span> <span style="color:#66d9ef">databases</span>
+<span style="color:#ae81ff">2020</span><span style="color:#f92672">-</span><span style="color:#ae81ff">03</span><span style="color:#f92672">-</span><span style="color:#ae81ff">28</span>T07:<span style="color:#ae81ff">08</span>:<span style="color:#ae81ff">11</span>.<span style="color:#ae81ff">011642</span>Z        <span style="color:#ae81ff">33</span> Query     <span style="color:#66d9ef">show</span> <span style="color:#66d9ef">tables</span>
+<span style="color:#ae81ff">2020</span><span style="color:#f92672">-</span><span style="color:#ae81ff">03</span><span style="color:#f92672">-</span><span style="color:#ae81ff">28</span>T07:<span style="color:#ae81ff">08</span>:<span style="color:#ae81ff">11</span>.<span style="color:#ae81ff">016498</span>Z        <span style="color:#ae81ff">33</span> Field List        T_TEST 
+<span style="color:#ae81ff">2020</span><span style="color:#f92672">-</span><span style="color:#ae81ff">03</span><span style="color:#f92672">-</span><span style="color:#ae81ff">28</span>T07:<span style="color:#ae81ff">08</span>:<span style="color:#ae81ff">11</span>.<span style="color:#ae81ff">019267</span>Z        <span style="color:#ae81ff">33</span> Field List        T_USER 
+<span style="color:#ae81ff">2020</span><span style="color:#f92672">-</span><span style="color:#ae81ff">03</span><span style="color:#f92672">-</span><span style="color:#ae81ff">28</span>T07:<span style="color:#ae81ff">08</span>:<span style="color:#ae81ff">11</span>.<span style="color:#ae81ff">028182</span>Z        <span style="color:#ae81ff">33</span> Query     <span style="color:#66d9ef">UPDATE</span> T_TEST <span style="color:#66d9ef">SET</span> NAME<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;tx-112&#39;</span> <span style="color:#66d9ef">WHERE</span> ID <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
+</code></pre></div><h3 id="-更快速的方法">❤ 更快速的方法</h3>
+<blockquote>
+<ul>
+<li><code>sys</code> 库所有的数据源来自 <code>performance_schema</code></li>
+<li>目标是把 <code>performance_schema</code> 的把复杂度降低</li>
+<li><code>sys</code> 库 基本上由 <strong>视图</strong> 和 <strong>存储过程</strong> 组成</li>
+</ul>
+</blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql">mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> sys.innodb_lock_waits <span style="color:#960050;background-color:#1e0010">\</span>G
+<span style="color:#f92672">***************************</span> <span style="color:#ae81ff">1</span>. row <span style="color:#f92672">***************************</span>
+                wait_started: <span style="color:#ae81ff">2020</span><span style="color:#f92672">-</span><span style="color:#ae81ff">03</span><span style="color:#f92672">-</span><span style="color:#ae81ff">28</span> <span style="color:#ae81ff">07</span>:<span style="color:#ae81ff">27</span>:<span style="color:#ae81ff">56</span>
+                    wait_age: <span style="color:#ae81ff">00</span>:<span style="color:#ae81ff">00</span>:<span style="color:#ae81ff">24</span>
+               wait_age_secs: <span style="color:#ae81ff">24</span>
+                locked_table: <span style="color:#f92672">`</span>test<span style="color:#f92672">`</span>.<span style="color:#f92672">`</span>T_TEST<span style="color:#f92672">`</span>
+                locked_index: <span style="color:#66d9ef">PRIMARY</span>
+                 locked_type: RECORD
+              waiting_trx_id: <span style="color:#ae81ff">21115</span>
+         waiting_trx_started: <span style="color:#ae81ff">2020</span><span style="color:#f92672">-</span><span style="color:#ae81ff">03</span><span style="color:#f92672">-</span><span style="color:#ae81ff">28</span> <span style="color:#ae81ff">07</span>:<span style="color:#ae81ff">09</span>:<span style="color:#ae81ff">09</span>
+             waiting_trx_age: <span style="color:#ae81ff">00</span>:<span style="color:#ae81ff">19</span>:<span style="color:#ae81ff">11</span>
+     waiting_trx_rows_locked: <span style="color:#ae81ff">3</span>
+   waiting_trx_rows_modified: <span style="color:#ae81ff">0</span>
+                 waiting_pid: <span style="color:#ae81ff">34</span>
+               waiting_query: <span style="color:#66d9ef">UPDATE</span> T_TEST <span style="color:#66d9ef">SET</span> NAME<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;tx-222&#39;</span> <span style="color:#66d9ef">WHERE</span> ID <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
+             waiting_lock_id: <span style="color:#ae81ff">21115</span>:<span style="color:#ae81ff">51</span>:<span style="color:#ae81ff">3</span>:<span style="color:#ae81ff">11</span>
+           waiting_lock_mode: X
+             blocking_trx_id: <span style="color:#ae81ff">21114</span>
+                blocking_pid: <span style="color:#ae81ff">33</span>
+              blocking_query: <span style="color:#66d9ef">NULL</span>
+            blocking_lock_id: <span style="color:#ae81ff">21114</span>:<span style="color:#ae81ff">51</span>:<span style="color:#ae81ff">3</span>:<span style="color:#ae81ff">11</span>
+          blocking_lock_mode: X
+        blocking_trx_started: <span style="color:#ae81ff">2020</span><span style="color:#f92672">-</span><span style="color:#ae81ff">03</span><span style="color:#f92672">-</span><span style="color:#ae81ff">28</span> <span style="color:#ae81ff">07</span>:<span style="color:#ae81ff">09</span>:<span style="color:#ae81ff">05</span>
+            blocking_trx_age: <span style="color:#ae81ff">00</span>:<span style="color:#ae81ff">19</span>:<span style="color:#ae81ff">15</span>
+    blocking_trx_rows_locked: <span style="color:#ae81ff">1</span>
+  blocking_trx_rows_modified: <span style="color:#ae81ff">0</span>
+     sql_kill_blocking_query: <span style="color:#66d9ef">KILL</span> QUERY <span style="color:#ae81ff">33</span>
+sql_kill_blocking_connection: <span style="color:#66d9ef">KILL</span> <span style="color:#ae81ff">33</span>
+
+mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">SELECT</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">FROM</span> sys.processlist <span style="color:#66d9ef">WHERE</span> conn_id <span style="color:#f92672">=</span> <span style="color:#ae81ff">33</span> <span style="color:#960050;background-color:#1e0010">\</span>G
+<span style="color:#f92672">***************************</span> <span style="color:#ae81ff">1</span>. row <span style="color:#f92672">***************************</span>
+                thd_id: <span style="color:#ae81ff">58</span>
+               conn_id: <span style="color:#ae81ff">33</span>
+                  <span style="color:#66d9ef">user</span>: root<span style="color:#f92672">@</span>localhost
+                    db: test
+               command: Sleep
+                 state: <span style="color:#66d9ef">NULL</span>
+                  <span style="color:#66d9ef">time</span>: <span style="color:#ae81ff">1665</span>
+     current_statement: <span style="color:#66d9ef">NULL</span>
+     statement_latency: <span style="color:#66d9ef">NULL</span>
+              progress: <span style="color:#66d9ef">NULL</span>
+          lock_latency: <span style="color:#ae81ff">4</span>.<span style="color:#ae81ff">53</span> ms
+         rows_examined: <span style="color:#ae81ff">1</span>
+             rows_sent: <span style="color:#ae81ff">0</span>
+         rows_affected: <span style="color:#ae81ff">0</span>
+            tmp_tables: <span style="color:#ae81ff">0</span>
+       tmp_disk_tables: <span style="color:#ae81ff">0</span>
+             full_scan: NO
+        last_statement: <span style="color:#66d9ef">UPDATE</span> T_TEST <span style="color:#66d9ef">SET</span> NAME<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;tx-111&#39;</span> <span style="color:#66d9ef">WHERE</span> ID <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#75715e">-- 阻塞来源最后执行的SQL
+</span><span style="color:#75715e"></span>last_statement_latency: <span style="color:#ae81ff">11</span>.<span style="color:#ae81ff">39</span> ms
+        current_memory: <span style="color:#ae81ff">0</span> bytes
+             last_wait: <span style="color:#66d9ef">NULL</span>
+     last_wait_latency: <span style="color:#66d9ef">NULL</span>
+                source: <span style="color:#66d9ef">NULL</span>
+           trx_latency: <span style="color:#66d9ef">NULL</span>
+             trx_state: <span style="color:#66d9ef">NULL</span>
+        trx_autocommit: <span style="color:#66d9ef">NULL</span>
+                   pid: <span style="color:#ae81ff">90</span>
+          program_name: mysql
+</code></pre></div><h3 id="-锁等待时间统计">❤ 锁等待时间统计</h3>
+<blockquote>
+<ul>
+<li><a href="https://dev.mysql.com/doc/refman/5.7/en/server-status-variable-reference.html">Server Status Variable Reference</a>
+<ul>
+<li><a href="https://dev.mysql.com/doc/refman/5.7/en/server-status-variables.html#statvar_Innodb_row_lock_time_avg">Innodb_row_lock_time_avg</a></li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql">mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">SELECT</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">FROM</span> sys.metrics <span style="color:#66d9ef">WHERE</span> Variable_name <span style="color:#66d9ef">LIKE</span> <span style="color:#e6db74">&#39;innodb_row_lock_%&#39;</span>;
+<span style="color:#f92672">+-------------------------------+----------------+---------------+---------+</span>
+<span style="color:#f92672">|</span> Variable_name                 <span style="color:#f92672">|</span> Variable_value <span style="color:#f92672">|</span> Type          <span style="color:#f92672">|</span> Enabled <span style="color:#f92672">|</span>
+<span style="color:#f92672">+-------------------------------+----------------+---------------+---------+</span>
+<span style="color:#f92672">|</span> innodb_row_lock_current_waits <span style="color:#f92672">|</span> <span style="color:#ae81ff">0</span>              <span style="color:#f92672">|</span> Global Status <span style="color:#f92672">|</span> YES     <span style="color:#f92672">|</span>
+<span style="color:#f92672">|</span> innodb_row_lock_time          <span style="color:#f92672">|</span> <span style="color:#ae81ff">1508173</span>        <span style="color:#f92672">|</span> Global Status <span style="color:#f92672">|</span> YES     <span style="color:#f92672">|</span>
+<span style="color:#f92672">|</span> innodb_row_lock_time_avg      <span style="color:#f92672">|</span> <span style="color:#ae81ff">41893</span>          <span style="color:#f92672">|</span> Global Status <span style="color:#f92672">|</span> YES     <span style="color:#f92672">|</span>
+<span style="color:#f92672">|</span> innodb_row_lock_time_max      <span style="color:#f92672">|</span> <span style="color:#ae81ff">51918</span>          <span style="color:#f92672">|</span> Global Status <span style="color:#f92672">|</span> YES     <span style="color:#f92672">|</span>
+<span style="color:#f92672">|</span> innodb_row_lock_waits         <span style="color:#f92672">|</span> <span style="color:#ae81ff">36</span>             <span style="color:#f92672">|</span> Global Status <span style="color:#f92672">|</span> YES     <span style="color:#f92672">|</span>
+<span style="color:#f92672">+-------------------------------+----------------+---------------+---------+</span>
+
+<span style="color:#75715e">-- 或者
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</span> status <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;innodb_row_lock%&#39;</span>;
+<span style="color:#f92672">+-------------------------------+---------+</span>
+<span style="color:#f92672">|</span> Variable_name                 <span style="color:#f92672">|</span> Value   <span style="color:#f92672">|</span>
+<span style="color:#f92672">+-------------------------------+---------+</span>
+<span style="color:#f92672">|</span> Innodb_row_lock_current_waits <span style="color:#f92672">|</span> <span style="color:#ae81ff">0</span>       <span style="color:#f92672">|</span>
+<span style="color:#f92672">|</span> Innodb_row_lock_time          <span style="color:#f92672">|</span> <span style="color:#ae81ff">1508173</span> <span style="color:#f92672">|</span>
+<span style="color:#f92672">|</span> Innodb_row_lock_time_avg      <span style="color:#f92672">|</span> <span style="color:#ae81ff">41893</span>   <span style="color:#f92672">|</span>
+<span style="color:#f92672">|</span> Innodb_row_lock_time_max      <span style="color:#f92672">|</span> <span style="color:#ae81ff">51918</span>   <span style="color:#f92672">|</span>
+<span style="color:#f92672">|</span> Innodb_row_lock_waits         <span style="color:#f92672">|</span> <span style="color:#ae81ff">36</span>      <span style="color:#f92672">|</span>
+<span style="color:#f92672">+-------------------------------+---------+</span>
+</code></pre></div><h3 id="小结">小结</h3>
+<ul>
+<li><code>information_schema.INNODB_TRX</code> 当前正在执行的事务</li>
+<li><code>information_schema.INNODB_LOCK_WAITS</code> 事务的 锁等待关系</li>
+<li><code>information_schema.INNODB_LOCKS</code>  当前出现的锁</li>
+<li><code>sys.innodb_lock_waits</code> 视图对以上几个表进行和综合简化</li>
+<li><code>sys.metrics</code> 视图 可用来查看指定指标的 统计信息，便于对参数进行合理的配置</li>
+</ul>
+<h2 id="如何避免或减少锁超时的情况">如何避免或减少锁超时的情况</h2>
+<ul>
+<li>事务不要太大，不要一股脑的往同一个事务里面方式，要思考
+<ul>
+<li>哪些是不必要事务执行的</li>
+<li>哪些步骤是可以分步执行的</li>
+</ul>
+</li>
+<li>尽量不要在事务中放网络操作相关的东西
+<ul>
+<li>第三方的请求的网络耗时长，会导致你的事务长时间无法结束</li>
+</ul>
+</li>
+<li>&hellip;</li>
+</ul>
+<h2 id="read-more">Read More</h2>
+<ul>
+<li><a href="https://www.cnblogs.com/tutar/p/5878651.html">MySQL 加锁处理分析</a></li>
+<li><a href="https://ningyu1.github.io/site/post/75-mysql-lock-wait-timeout-exceeded/">MySql Lock wait timeout exceeded该如何处理？</a></li>
+<li><a href="https://dev.mysql.com/doc/refman/5.7/en/">MySQL 5.7 Reference Manual</a> / <a href="https://dev.mysql.com/doc/refman/5.7/en/information-schema.html">INFORMATION_SCHEMA Tables</a></li>
+<li><a href="https://www.cnblogs.com/kerrycode/p/8948335.html">MySQL Innodb如何找出阻塞事务源头SQL</a></li>
+<li><a href="https://dev.mysql.com/doc/refman/5.7/en/server-status-variable-reference.html">Server Status Variable Reference</a></li>
+</ul>
+</article>
+
+      
+<div class="book-footer justify-between">
+  
+  <div>
+    
+    <a href="https://github.com/hello-world-example/MySQL/commit/a172f4028390a48b71891a73b708c673cae93d91" title='Last modified Mar 28, 2020 by kailbin' target="_blank" rel="noopener">
+      <img src="/MySQL/svg/calendar.svg" alt="Changed" /> Mar 28, 2020
+    </a>
+  </div>
+  
+  
+  <div>
+    <a href="https://github.com/hello-world-example/MySQL/edit/master/HuGo/content/docs/Better/innodb_lock_wait_timeout.md" target="_blank" rel="noopener">
+      <img src="/MySQL/svg/edit.svg" alt="Edit" /> Edit this page
+    </a>
+  </div>
+  
+</div>
+
+
+      
+    </div>
+
+    
+  
+
+  <aside class="book-toc level-3 fixed">
+    <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#锁超时lock-wait-timeout-和-死锁dead-lock">锁超时(Lock wait timeout) 和 死锁(Dead Lock)</a></li>
+        <li><a href="#innodb_lock_wait_timeout-和-lock_wait_timeout">innodb_lock_wait_timeout 和 lock_wait_timeout</a></li>
+        <li><a href="#修改-innodb_lock_wait_timeout">修改 innodb_lock_wait_timeout</a></li>
+      </ul>
+    </li>
+    <li><a href="#测试场景">测试场景</a>
+      <ul>
+        <li><a href="#数据准备">数据准备</a></li>
+        <li><a href="#修改隔离级别">修改隔离级别</a></li>
+        <li><a href="#事务提交方式">事务提交方式</a></li>
+        <li><a href="#测试前提">测试前提</a></li>
+        <li><a href="#场景死锁-立即失败">场景：死锁 立即失败</a></li>
+        <li><a href="#场景锁超时-阻塞等待">场景：锁超时 阻塞等待</a></li>
+        <li><a href="#-场景锁超时-仅回滚当前语句">❤ 场景：锁超时 仅回滚当前语句</a></li>
+      </ul>
+    </li>
+    <li><a href="#问题排查">问题排查</a>
+      <ul>
+        <li><a href="#查看当前等待的事务">查看当前等待的事务</a></li>
+        <li><a href="#lock-wait-的事务在等谁">LOCK WAIT 的事务在等谁</a></li>
+        <li><a href="#找到阻塞的源头">找到阻塞的源头</a></li>
+        <li><a href="#general_log-开启记录">general_log 开启记录</a></li>
+        <li><a href="#-更快速的方法">❤ 更快速的方法</a></li>
+        <li><a href="#-锁等待时间统计">❤ 锁等待时间统计</a></li>
+        <li><a href="#小结">小结</a></li>
+      </ul>
+    </li>
+    <li><a href="#如何避免或减少锁超时的情况">如何避免或减少锁超时的情况</a></li>
+    <li><a href="#read-more">Read More</a></li>
+  </ul>
+</nav>
+  </aside>
+
+
+
+  </main>
+  
+  
+  
+</body>
+
+</html>

@@ -7,7 +7,7 @@
 <title>Parse Binlog by Canal | MySQL</title>
 
 
-<link rel="stylesheet" href="/MySQL/book.min.79de1f7861b0c98f453c0a93bebf3608a280809e417787746c373699639900d7.css">
+<link rel="stylesheet" href="/MySQL/book.min.a2277534155c5e81ce2c8ca6a4cd295525f25c75788a2e4e72c3310491c743b1.css">
 
 
 
@@ -50,39 +50,43 @@ https://github.com/alex-shpak/hugo-book
   </style>
 
 <ul>
-<li><strong>安装</strong>
-
+<li><strong>Install</strong>
 <ul>
 <li><a href="/MySQL/docs/Install/Mac-Multiple-Instance/">MAC 多实例安装 和 主从配置</a></li>
 <li><a href="/MySQL/docs/Install/Docker-Multiple-Instance/">使用 Docker 搭建主从测试</a></li>
-</ul></li>
+</ul>
+</li>
 <li><strong>JDBC</strong>
-
 <ul>
 <li><a href="/MySQL/docs/Jdbc/FetchSize/">FetchSize 处理大结果集</a></li>
-<li><a href="/MySQL/docs/Jdbc/DataSource/">DataSource</a></li>
-</ul></li>
-<li><strong>优化</strong></li>
+<li><a href="/MySQL/docs/Jdbc/DataSource/">DataSource 配置</a></li>
+</ul>
+</li>
+<li><strong>Better</strong>
+<ul>
+<li><a href="/MySQL/docs/Better/innodb_lock_wait_timeout/">锁等待时间</a></li>
+</ul>
+</li>
 <li><strong>Binlog</strong>
-
 <ul>
 <li><a href="/MySQL/docs/Binlog/Quick-Start/">快速入门</a></li>
 <li><a href="/MySQL/docs/Binlog/Gtid/">GTID</a></li>
 <li><a href="/MySQL/docs/Binlog/binlog-protocol/">_binlog 协议</a></li>
 <li><a href="/MySQL/docs/Binlog/parse-binlog-by-java/">_Java 解析 binlog</a></li>
 <li><a href="/MySQL/docs/Binlog/parse-binlog-by-canal/">_Canal 订阅 binlog</a></li>
-</ul></li>
+</ul>
+</li>
 <li><strong>Canal</strong>
-
 <ul>
 <li><a href="/MySQL/docs/canal/introduce/">Canal 简介</a></li>
 <li><a href="/MySQL/docs/canal/data-type/">数据格式</a></li>
-</ul></li>
+</ul>
+</li>
 <li><strong>其他</strong>
-
 <ul>
 <li><a href="/MySQL/docs/rds_dbsync/">MySQL 全量同步 Postgres</a></li>
-</ul></li>
+</ul>
+</li>
 </ul>
 
 
@@ -115,10 +119,7 @@ https://github.com/alex-shpak/hugo-book
 </header>
 
       
-<article class="markdown">
-
-<h1 id="canal-订阅-binlog">Canal 订阅 binlog</h1>
-
+<article class="markdown"><h1 id="canal-订阅-binlog">Canal 订阅 binlog</h1>
 <h2 id="安装-canal">安装 Canal</h2>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ git clone https://github.com/alibaba/canal.git
 $ cd canal
@@ -171,11 +172,10 @@ $ tail -fn <span style="color:#ae81ff">400</span> logs/canal/canal.log
 $ tail -fn <span style="color:#ae81ff">400</span> logs/example/example.log
 
 <span style="color:#75715e"># 关闭</span>
-$ ./bin/stop.sh</code></pre></div>
-<blockquote>
-<p>来自：<a href="https://github.com/alibaba/canal/wiki/QuickStart">https://github.com/alibaba/canal/wiki/QuickStart</a></p>
+$ ./bin/stop.sh
+</code></pre></div><blockquote>
+<p>来自：https://github.com/alibaba/canal/wiki/QuickStart</p>
 </blockquote>
-
 <h2 id="canal-示例">Canal 示例</h2>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 省略编译打包部分</span>
 
@@ -194,9 +194,9 @@ $ ./bin/startup.sh
 $ tail -fn <span style="color:#ae81ff">400</span> logs/example/entry.log
 
 <span style="color:#75715e"># 关闭</span>
-$ ./bin/stop.sh</code></pre></div>
-<blockquote>
-<p>来自：<a href="https://github.com/alibaba/canal/wiki/ClientExample">https://github.com/alibaba/canal/wiki/ClientExample</a></p>
+$ ./bin/stop.sh
+</code></pre></div><blockquote>
+<p>来自：https://github.com/alibaba/canal/wiki/ClientExample</p>
 </blockquote>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 省略编译打包部分</span>
 
@@ -215,9 +215,8 @@ $ ./bin/startup.sh
 $ tail -fn <span style="color:#ae81ff">400</span> logs/example/entry.log
 
 <span style="color:#75715e"># 关闭</span>
-$ ./bin/stop.sh</code></pre></div>
-<h2 id="read-more">Read More</h2>
-
+$ ./bin/stop.sh
+</code></pre></div><h2 id="read-more">Read More</h2>
 <ul>
 <li><a href="https://github.com/alibaba/canal/wiki/QuickStart">QuickStart</a></li>
 <li><a href="https://github.com/alibaba/canal/wiki/Canal-Kafka-RocketMQ-QuickStart">Canal Kafka RocketMQ QuickStart</a></li>
@@ -253,14 +252,11 @@ $ ./bin/stop.sh</code></pre></div>
 
   <aside class="book-toc level-3 fixed">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#canal-订阅-binlog">Canal 订阅 binlog</a>
-<ul>
-<li><a href="#安装-canal">安装 Canal</a></li>
-<li><a href="#canal-示例">Canal 示例</a></li>
-<li><a href="#read-more">Read More</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#安装-canal">安装 Canal</a></li>
+    <li><a href="#canal-示例">Canal 示例</a></li>
+    <li><a href="#read-more">Read More</a></li>
+  </ul>
 </nav>
   </aside>
 

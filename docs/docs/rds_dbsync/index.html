@@ -7,7 +7,7 @@
 <title>Rds Dbsync | MySQL</title>
 
 
-<link rel="stylesheet" href="/MySQL/book.min.79de1f7861b0c98f453c0a93bebf3608a280809e417787746c373699639900d7.css">
+<link rel="stylesheet" href="/MySQL/book.min.a2277534155c5e81ce2c8ca6a4cd295525f25c75788a2e4e72c3310491c743b1.css">
 
 
 
@@ -50,39 +50,43 @@ https://github.com/alex-shpak/hugo-book
   </style>
 
 <ul>
-<li><strong>安装</strong>
-
+<li><strong>Install</strong>
 <ul>
 <li><a href="/MySQL/docs/Install/Mac-Multiple-Instance/">MAC 多实例安装 和 主从配置</a></li>
 <li><a href="/MySQL/docs/Install/Docker-Multiple-Instance/">使用 Docker 搭建主从测试</a></li>
-</ul></li>
+</ul>
+</li>
 <li><strong>JDBC</strong>
-
 <ul>
 <li><a href="/MySQL/docs/Jdbc/FetchSize/">FetchSize 处理大结果集</a></li>
-<li><a href="/MySQL/docs/Jdbc/DataSource/">DataSource</a></li>
-</ul></li>
-<li><strong>优化</strong></li>
+<li><a href="/MySQL/docs/Jdbc/DataSource/">DataSource 配置</a></li>
+</ul>
+</li>
+<li><strong>Better</strong>
+<ul>
+<li><a href="/MySQL/docs/Better/innodb_lock_wait_timeout/">锁等待时间</a></li>
+</ul>
+</li>
 <li><strong>Binlog</strong>
-
 <ul>
 <li><a href="/MySQL/docs/Binlog/Quick-Start/">快速入门</a></li>
 <li><a href="/MySQL/docs/Binlog/Gtid/">GTID</a></li>
 <li><a href="/MySQL/docs/Binlog/binlog-protocol/">_binlog 协议</a></li>
 <li><a href="/MySQL/docs/Binlog/parse-binlog-by-java/">_Java 解析 binlog</a></li>
 <li><a href="/MySQL/docs/Binlog/parse-binlog-by-canal/">_Canal 订阅 binlog</a></li>
-</ul></li>
+</ul>
+</li>
 <li><strong>Canal</strong>
-
 <ul>
 <li><a href="/MySQL/docs/canal/introduce/">Canal 简介</a></li>
 <li><a href="/MySQL/docs/canal/data-type/">数据格式</a></li>
-</ul></li>
+</ul>
+</li>
 <li><strong>其他</strong>
-
 <ul>
 <li><a href="/MySQL/docs/rds_dbsync/">MySQL 全量同步 Postgres</a></li>
-</ul></li>
+</ul>
+</li>
 </ul>
 
 
@@ -115,12 +119,8 @@ https://github.com/alex-shpak/hugo-book
 </header>
 
       
-<article class="markdown">
-
-<h1 id="rds-dbsync">rds_dbsync</h1>
-
+<article class="markdown"><h1 id="rds_dbsync">rds_dbsync</h1>
 <h2 id="非-linux环境下如何使用">非 Linux环境下如何使用</h2>
-
 <p>MAC 下无法执行编译好的可执行文件，可以通过 Docker 运行</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ docker pull centos
 
@@ -137,13 +137,12 @@ $ docker exec -it centos bash
 <span style="color:#f92672">[</span>docker<span style="color:#f92672">]</span>$ tar zxvf mysql2pgsql.bin.el6.20170413.tar.gz
 <span style="color:#f92672">[</span>docker<span style="color:#f92672">]</span>$ cd /root/mysql2pgsql.bin.el6.20170413/bin
 <span style="color:#75715e"># 运行</span>
-<span style="color:#f92672">[</span>docker<span style="color:#f92672">]</span>$ ./mysql2pgsql -d</code></pre></div>
-<blockquote>
+<span style="color:#f92672">[</span>docker<span style="color:#f92672">]</span>$ ./mysql2pgsql -d
+</code></pre></div><blockquote>
 <ul>
 <li><a href="https://blog.csdn.net/caoshiying/article/details/53317943">如何设置PostgreSQL远程访问</a></li>
 </ul>
 </blockquote>
-
 <h2 id="修改配置文件">修改配置文件</h2>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>src.mysql<span style="color:#f92672">]</span>
 host <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;192.168.1.6&#34;</span>
@@ -157,47 +156,47 @@ db <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;test&#3
 <span style="color:#f92672">[</span>desc.pgsql<span style="color:#f92672">]</span>
 connect_string <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;host=192.168.1.6 dbname=postgres port=5432 user=postgres password=postgres&#34;</span>
 
-... 省略无需关注的配置</code></pre></div>
-<h2 id="mysql2pgsql-参数">mysql2pgsql 参数</h2>
-
+... 省略无需关注的配置
+</code></pre></div><h2 id="mysql2pgsql-参数">mysql2pgsql 参数</h2>
 <ul>
-<li><code>-d</code> 可选参数，只生成目的表的建表DDL语句，不实际进行数据同步</li>
-<li><code>-s &lt;schema&gt;</code> 可选参数，指定 <code>schema</code>，一次命令只能指定一个 <code>schema</code>。如果不指定此参数，则数据会导入到 <code>public</code> 下</li>
+<li>
+<p><code>-d</code> 可选参数，只生成目的表的建表DDL语句，不实际进行数据同步</p>
+</li>
+<li>
+<p><code>-s &lt;schema&gt;</code> 可选参数，指定 <code>schema</code>，一次命令只能指定一个 <code>schema</code>。如果不指定此参数，则数据会导入到 <code>public</code> 下</p>
+</li>
 <li></li>
-
-<li><p><code>-n</code> 可选参数，需要与-d一起使用，指定在DDL语句中不包含表分区定义</p></li>
-
-<li><p><code>-j &lt;threads&gt;</code> 可选参数，指定使用多少线程进行数据同步；如果不指定此参数，会使用5个线程并发</p></li>
-
-<li><p><code>-l &lt;tables_list_file&gt;</code> 可选参数，指定一个文本文件，文件中含有需要同步的表；如果不指定此参数，则同步配置文件中指定数据库下的所有表。文件格式和内容如下：</p>
-
+<li>
+<p><code>-n</code> 可选参数，需要与-d一起使用，指定在DDL语句中不包含表分区定义</p>
+</li>
+<li>
+<p><code>-j &lt;threads&gt;</code> 可选参数，指定使用多少线程进行数据同步；如果不指定此参数，会使用5个线程并发</p>
+</li>
+<li>
+<p><code>-l &lt;tables_list_file&gt;</code> 可选参数，指定一个文本文件，文件中含有需要同步的表；如果不指定此参数，则同步配置文件中指定数据库下的所有表。文件格式和内容如下：</p>
+</li>
+</ul>
 <pre><code>table1 : select * from table_big where column1 &lt; '2016-08-05'
 table2 : 
 table3
 table4: select column1, column2 from tableX where column1 != 10
 table5: select * from table_big where column1 &gt;= '2016-08-05'
-</code></pre></li>
-</ul>
-
-<h2 id="常用命令">常用命令</h2>
+</code></pre><h2 id="常用命令">常用命令</h2>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 获取目的端(MySQL)对应表的 DDL，获取之后需要先在 Postgres 上创建好对应的 schema 和 table</span>
 $ ./mysql2pgsql -d
 
 <span style="color:#75715e"># 数据同步到 test schema 下</span>
-$ ./mysql2pgsql -s test</code></pre></div>
-<h2 id="工具缺陷">工具缺陷</h2>
-
+$ ./mysql2pgsql -s test
+</code></pre></div><h2 id="工具缺陷">工具缺陷</h2>
 <ul>
 <li>Postgres 必须事先创建好 对应的 scheme 和 table，可通过 <code>./mysql2pgsql -d</code> 获取 DDL 语句</li>
 <li>无法指定 配置文件
-
 <ul>
 <li><a href="https://github.com/aliyun/rds_dbsync/pull/119">增加了一个-c的参数，指定配置文件 #119</a></li>
-</ul></li>
 </ul>
-
+</li>
+</ul>
 <h2 id="read-more">Read More</h2>
-
 <ul>
 <li><a href="https://github.com/aliyun/rds_dbsync">rds_dbsync</a></li>
 <li><a href="https://github.com/aliyun/rds_dbsync/blob/master/doc/mysql2pgsql_ch.md">mysql2pgsql 官方文档</a></li>
@@ -233,17 +232,14 @@ $ ./mysql2pgsql -s test</code></pre></div>
 
   <aside class="book-toc level-3 fixed">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#rds-dbsync">rds_dbsync</a>
-<ul>
-<li><a href="#非-linux环境下如何使用">非 Linux环境下如何使用</a></li>
-<li><a href="#修改配置文件">修改配置文件</a></li>
-<li><a href="#mysql2pgsql-参数">mysql2pgsql 参数</a></li>
-<li><a href="#常用命令">常用命令</a></li>
-<li><a href="#工具缺陷">工具缺陷</a></li>
-<li><a href="#read-more">Read More</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#非-linux环境下如何使用">非 Linux环境下如何使用</a></li>
+    <li><a href="#修改配置文件">修改配置文件</a></li>
+    <li><a href="#mysql2pgsql-参数">mysql2pgsql 参数</a></li>
+    <li><a href="#常用命令">常用命令</a></li>
+    <li><a href="#工具缺陷">工具缺陷</a></li>
+    <li><a href="#read-more">Read More</a></li>
+  </ul>
 </nav>
   </aside>
 

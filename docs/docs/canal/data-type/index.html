@@ -7,7 +7,7 @@
 <title>Data Type | MySQL</title>
 
 
-<link rel="stylesheet" href="/MySQL/book.min.79de1f7861b0c98f453c0a93bebf3608a280809e417787746c373699639900d7.css">
+<link rel="stylesheet" href="/MySQL/book.min.a2277534155c5e81ce2c8ca6a4cd295525f25c75788a2e4e72c3310491c743b1.css">
 
 
 
@@ -50,39 +50,43 @@ https://github.com/alex-shpak/hugo-book
   </style>
 
 <ul>
-<li><strong>安装</strong>
-
+<li><strong>Install</strong>
 <ul>
 <li><a href="/MySQL/docs/Install/Mac-Multiple-Instance/">MAC 多实例安装 和 主从配置</a></li>
 <li><a href="/MySQL/docs/Install/Docker-Multiple-Instance/">使用 Docker 搭建主从测试</a></li>
-</ul></li>
+</ul>
+</li>
 <li><strong>JDBC</strong>
-
 <ul>
 <li><a href="/MySQL/docs/Jdbc/FetchSize/">FetchSize 处理大结果集</a></li>
-<li><a href="/MySQL/docs/Jdbc/DataSource/">DataSource</a></li>
-</ul></li>
-<li><strong>优化</strong></li>
+<li><a href="/MySQL/docs/Jdbc/DataSource/">DataSource 配置</a></li>
+</ul>
+</li>
+<li><strong>Better</strong>
+<ul>
+<li><a href="/MySQL/docs/Better/innodb_lock_wait_timeout/">锁等待时间</a></li>
+</ul>
+</li>
 <li><strong>Binlog</strong>
-
 <ul>
 <li><a href="/MySQL/docs/Binlog/Quick-Start/">快速入门</a></li>
 <li><a href="/MySQL/docs/Binlog/Gtid/">GTID</a></li>
 <li><a href="/MySQL/docs/Binlog/binlog-protocol/">_binlog 协议</a></li>
 <li><a href="/MySQL/docs/Binlog/parse-binlog-by-java/">_Java 解析 binlog</a></li>
 <li><a href="/MySQL/docs/Binlog/parse-binlog-by-canal/">_Canal 订阅 binlog</a></li>
-</ul></li>
+</ul>
+</li>
 <li><strong>Canal</strong>
-
 <ul>
 <li><a href="/MySQL/docs/canal/introduce/">Canal 简介</a></li>
 <li><a href="/MySQL/docs/canal/data-type/">数据格式</a></li>
-</ul></li>
+</ul>
+</li>
 <li><strong>其他</strong>
-
 <ul>
 <li><a href="/MySQL/docs/rds_dbsync/">MySQL 全量同步 Postgres</a></li>
-</ul></li>
+</ul>
+</li>
 </ul>
 
 
@@ -115,37 +119,41 @@ https://github.com/alex-shpak/hugo-book
 </header>
 
       
-<article class="markdown">
-
-<h1 id="数据格式">数据格式</h1>
-
-<h2 id="flatmessage-message">FlatMessage - Message</h2>
-
+<article class="markdown"><h1 id="数据格式">数据格式</h1>
+<h2 id="flatmessage---message">FlatMessage - Message</h2>
 <ul>
-<li>com.alibaba.otter.canal.common.MQMessageUtils
-
+<li>
+<p>com.alibaba.otter.canal.common.MQMessageUtils</p>
 <ul>
 <li><code>messageConverter()</code> 将Message转换为FlatMessage</li>
-</ul></li>
-<li>com.alibaba.otter.canal.protocol.FlatMessage</li>
-
-<li><p>com.alibaba.otter.canal.protocol.Message</p></li>
-
-<li><p><code>List&lt;CanalEntry.Entry&gt; entrys = message.getEntries();</code></p></li>
-
-<li><p><code>CanalEntry.RowChange rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());</code></p></li>
-
-<li><p><code>CanalEntry.EventType eventType = rowChange.getEventType();</code></p></li>
-
-<li><p><code>for (CanalEntry.RowData rowData : rowChange.getRowDatasList())</code></p></li>
-
-<li><p><code>List&lt;CanalEntry.Column&gt; columns = rowData.getBeforeColumnsList();</code></p></li>
-
-<li><p><code>List&lt;CanalEntry.Column&gt; columns = rowData.getAfterColumnsList();</code></p></li>
-
+</ul>
+</li>
+<li>
+<p>com.alibaba.otter.canal.protocol.FlatMessage</p>
+</li>
+<li>
+<p>com.alibaba.otter.canal.protocol.Message</p>
+</li>
+<li>
+<p><code>List&lt;CanalEntry.Entry&gt; entrys = message.getEntries();</code></p>
+</li>
+<li>
+<p><code>CanalEntry.RowChange rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());</code></p>
+</li>
+<li>
+<p><code>CanalEntry.EventType eventType = rowChange.getEventType();</code></p>
+</li>
+<li>
+<p><code>for (CanalEntry.RowData rowData : rowChange.getRowDatasList())</code></p>
+</li>
+<li>
+<p><code>List&lt;CanalEntry.Column&gt; columns = rowData.getBeforeColumnsList();</code></p>
+</li>
+<li>
+<p><code>List&lt;CanalEntry.Column&gt; columns = rowData.getAfterColumnsList();</code></p>
+</li>
 <li></li>
 </ul>
-
 <table>
 <thead>
 <tr>
@@ -155,7 +163,6 @@ https://github.com/alex-shpak/hugo-book
 <th></th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td><code>long</code></td>
@@ -163,91 +170,78 @@ https://github.com/alex-shpak/hugo-book
 <td><code>message.getId()</code></td>
 <td></td>
 </tr>
-
 <tr>
 <td><code>String</code></td>
 <td><code>database</code></td>
 <td><code>entry.getHeader().getSchemaName()</code></td>
 <td>数据库名</td>
 </tr>
-
 <tr>
 <td><code>String</code></td>
 <td><code>table</code></td>
 <td><code>entry.getHeader().getTableName()</code></td>
 <td>表名</td>
 </tr>
-
 <tr>
 <td><code>List&lt;String&gt;</code></td>
 <td><code>pkNames</code></td>
-<td><code>if (column.getIsKey()) flatMessage.addPkName(column.getName());</code></td>
+<td><code>if (column.getIsKey()) flatMessage.addPkName(column.getName()); </code></td>
 <td>主键名</td>
 </tr>
-
 <tr>
 <td><code>Boolean</code></td>
 <td><code>isDdl</code></td>
 <td><code>rowChange.getIsDdl()</code></td>
 <td>是否 DDL 语句</td>
 </tr>
-
 <tr>
 <td><code>String</code></td>
 <td><code>type</code></td>
 <td><code>eventType.toString()</code></td>
 <td>CanalEntry.EventType 事件类型</td>
 </tr>
-
 <tr>
 <td><code>Long</code></td>
 <td><code>es</code></td>
 <td><code>entry.getHeader().getExecuteTime()</code></td>
 <td>binlog executeTime</td>
 </tr>
-
 <tr>
 <td><code>Long</code></td>
 <td><code>ts</code></td>
 <td><code>System.currentTimeMillis()</code></td>
 <td>dml build timeStamp</td>
 </tr>
-
 <tr>
 <td><code>String</code></td>
 <td><code>sql</code></td>
 <td><code>rowChange.getSql()</code></td>
 <td>执行的SQL语句</td>
 </tr>
-
 <tr>
 <td>&mdash;&mdash;&mdash;</td>
 <td>&mdash;&mdash;&mdash;</td>
 <td>&mdash;&mdash;&mdash;</td>
 <td>&mdash;&mdash;&mdash;</td>
 </tr>
-
 <tr>
 <td><code>Map&lt;String, Integer&gt;</code></td>
 <td><code>sqlType</code></td>
 <td><code>sqlType.put(column.getName(), column.getSqlType());</code></td>
 <td>MySQL 数据类型</td>
 </tr>
-
 <tr>
 <td><code>Map&lt;String, String&gt;</code></td>
 <td><code>mysqlType</code></td>
 <td><code>mysqlType.put(column.getName(), column.getMysqlType());</code></td>
 <td>Java 数据类型</td>
 </tr>
-
 <tr>
 <td><code>List&lt;Map&lt;String, String&gt;&gt;</code></td>
 <td><code>data</code></td>
 <td><code>rowData.getAfterColumnsList()</code></td>
 <td>新数据</td>
 </tr>
-
 <tr>
 <td><code>List&lt;Map&lt;String, String&gt;&gt;</code></td>
 <td><code>old</code></td>
@@ -256,20 +250,19 @@ https://github.com/alex-shpak/hugo-book
 </tr>
 </tbody>
 </table>
-
-<h2 id="canalentry-entrytype">CanalEntry.EntryType</h2>
+<h2 id="canalentryentrytype">CanalEntry.EntryType</h2>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">/**
 </span><span style="color:#75715e"> * &lt;code&gt;TRANSACTIONBEGIN = 1;&lt;/code&gt;
 </span><span style="color:#75715e"> */</span>
-<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">static</span> <span style="color:#66d9ef">final</span> <span style="color:#a6e22e">int</span> TRANSACTIONBEGIN_VALUE <span style="color:#f92672">=</span> 1;
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> TRANSACTIONBEGIN_VALUE <span style="color:#f92672">=</span> 1<span style="color:#f92672">;</span>
 <span style="color:#75715e">/**
 </span><span style="color:#75715e"> * &lt;code&gt;ROWDATA = 2;&lt;/code&gt;
 </span><span style="color:#75715e"> */</span>
-<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">static</span> <span style="color:#66d9ef">final</span> <span style="color:#a6e22e">int</span> ROWDATA_VALUE <span style="color:#f92672">=</span> 2;
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> ROWDATA_VALUE <span style="color:#f92672">=</span> 2<span style="color:#f92672">;</span>
 <span style="color:#75715e">/**
 </span><span style="color:#75715e"> * &lt;code&gt;TRANSACTIONEND = 3;&lt;/code&gt;
 </span><span style="color:#75715e"> */</span>
-<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">static</span> <span style="color:#66d9ef">final</span> <span style="color:#a6e22e">int</span> TRANSACTIONEND_VALUE <span style="color:#f92672">=</span> 3;
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> TRANSACTIONEND_VALUE <span style="color:#f92672">=</span> 3<span style="color:#f92672">;</span>
 <span style="color:#75715e">/**
 </span><span style="color:#75715e"> * &lt;code&gt;HEARTBEAT = 4;&lt;/code&gt;
 </span><span style="color:#75715e"> *
@@ -277,48 +270,48 @@ https://github.com/alex-shpak/hugo-book
 </span><span style="color:#75715e"> * * 心跳类型，内部使用，外部暂不可见，可忽略 *
 </span><span style="color:#75715e"> * &lt;/pre&gt;
 </span><span style="color:#75715e"> */</span>
-<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">static</span> <span style="color:#66d9ef">final</span> <span style="color:#a6e22e">int</span> HEARTBEAT_VALUE <span style="color:#f92672">=</span> 4;
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> HEARTBEAT_VALUE <span style="color:#f92672">=</span> 4<span style="color:#f92672">;</span>
 <span style="color:#75715e">/**
 </span><span style="color:#75715e"> * &lt;code&gt;GTIDLOG = 5;&lt;/code&gt;
 </span><span style="color:#75715e"> */</span>
-<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">static</span> <span style="color:#66d9ef">final</span> <span style="color:#a6e22e">int</span> GTIDLOG_VALUE <span style="color:#f92672">=</span> 5;</code></pre></div>
-<h2 id="canalentry-eventtype">CanalEntry.EventType</h2>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> GTIDLOG_VALUE <span style="color:#f92672">=</span> 5<span style="color:#f92672">;</span>
+</code></pre></div><h2 id="canalentryeventtype">CanalEntry.EventType</h2>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">/**
 </span><span style="color:#75715e"> * &lt;code&gt;INSERT = 1;&lt;/code&gt;
 </span><span style="color:#75715e"> */</span>
-INSERT(0, 1),
+INSERT<span style="color:#f92672">(</span>0<span style="color:#f92672">,</span> 1<span style="color:#f92672">),</span>
 <span style="color:#75715e">/**
 </span><span style="color:#75715e"> * &lt;code&gt;UPDATE = 2;&lt;/code&gt;
 </span><span style="color:#75715e"> */</span>
-UPDATE(1, 2),
+UPDATE<span style="color:#f92672">(</span>1<span style="color:#f92672">,</span> 2<span style="color:#f92672">),</span>
 <span style="color:#75715e">/**
 </span><span style="color:#75715e"> * &lt;code&gt;DELETE = 3;&lt;/code&gt;
 </span><span style="color:#75715e"> */</span>
-DELETE(2, 3),
+DELETE<span style="color:#f92672">(</span>2<span style="color:#f92672">,</span> 3<span style="color:#f92672">),</span>
 <span style="color:#75715e">/**
 </span><span style="color:#75715e"> * &lt;code&gt;CREATE = 4;&lt;/code&gt;
 </span><span style="color:#75715e"> */</span>
-CREATE(3, 4),
+CREATE<span style="color:#f92672">(</span>3<span style="color:#f92672">,</span> 4<span style="color:#f92672">),</span>
 <span style="color:#75715e">/**
 </span><span style="color:#75715e"> * &lt;code&gt;ALTER = 5;&lt;/code&gt;
 </span><span style="color:#75715e"> */</span>
-ALTER(4, 5),
+ALTER<span style="color:#f92672">(</span>4<span style="color:#f92672">,</span> 5<span style="color:#f92672">),</span>
 <span style="color:#75715e">/**
 </span><span style="color:#75715e"> * &lt;code&gt;ERASE = 6;&lt;/code&gt;
 </span><span style="color:#75715e"> */</span>
-ERASE(5, 6),
+ERASE<span style="color:#f92672">(</span>5<span style="color:#f92672">,</span> 6<span style="color:#f92672">),</span>
 <span style="color:#75715e">/**
 </span><span style="color:#75715e"> * &lt;code&gt;QUERY = 7;&lt;/code&gt;
 </span><span style="color:#75715e"> */</span>
-QUERY(6, 7),
+QUERY<span style="color:#f92672">(</span>6<span style="color:#f92672">,</span> 7<span style="color:#f92672">),</span>
 <span style="color:#75715e">/**
 </span><span style="color:#75715e"> * &lt;code&gt;TRUNCATE = 8;&lt;/code&gt;
 </span><span style="color:#75715e"> */</span>
-TRUNCATE(7, 8),
+TRUNCATE<span style="color:#f92672">(</span>7<span style="color:#f92672">,</span> 8<span style="color:#f92672">),</span>
 <span style="color:#75715e">/**
 </span><span style="color:#75715e"> * &lt;code&gt;RENAME = 9;&lt;/code&gt;
 </span><span style="color:#75715e"> */</span>
-RENAME(8, 9),
+RENAME<span style="color:#f92672">(</span>8<span style="color:#f92672">,</span> 9<span style="color:#f92672">),</span>
 <span style="color:#75715e">/**
 </span><span style="color:#75715e"> * &lt;code&gt;CINDEX = 10;&lt;/code&gt;
 </span><span style="color:#75715e"> *
@@ -326,15 +319,15 @@ RENAME(8, 9),
 </span><span style="color:#75715e"> * *CREATE INDEX*
 </span><span style="color:#75715e"> * &lt;/pre&gt;
 </span><span style="color:#75715e"> */</span>
-CINDEX(9, 10),
+CINDEX<span style="color:#f92672">(</span>9<span style="color:#f92672">,</span> 10<span style="color:#f92672">),</span>
 <span style="color:#75715e">/**
 </span><span style="color:#75715e"> * &lt;code&gt;DINDEX = 11;&lt;/code&gt;
 </span><span style="color:#75715e"> */</span>
-DINDEX(10, 11),
+DINDEX<span style="color:#f92672">(</span>10<span style="color:#f92672">,</span> 11<span style="color:#f92672">),</span>
 <span style="color:#75715e">/**
 </span><span style="color:#75715e"> * &lt;code&gt;GTID = 12;&lt;/code&gt;
 </span><span style="color:#75715e"> */</span>
-GTID(11, 12),
+GTID<span style="color:#f92672">(</span>11<span style="color:#f92672">,</span> 12<span style="color:#f92672">),</span>
 <span style="color:#75715e">/**
 </span><span style="color:#75715e"> * &lt;code&gt;XACOMMIT = 13;&lt;/code&gt;
 </span><span style="color:#75715e"> *
@@ -342,11 +335,11 @@ GTID(11, 12),
 </span><span style="color:#75715e"> * * XA *
 </span><span style="color:#75715e"> * &lt;/pre&gt;
 </span><span style="color:#75715e"> */</span>
-XACOMMIT(12, 13),
+XACOMMIT<span style="color:#f92672">(</span>12<span style="color:#f92672">,</span> 13<span style="color:#f92672">),</span>
 <span style="color:#75715e">/**
 </span><span style="color:#75715e"> * &lt;code&gt;XAROLLBACK = 14;&lt;/code&gt;
 </span><span style="color:#75715e"> */</span>
-XAROLLBACK(13, 14),
+XAROLLBACK<span style="color:#f92672">(</span>13<span style="color:#f92672">,</span> 14<span style="color:#f92672">),</span>
 <span style="color:#75715e">/**
 </span><span style="color:#75715e"> * &lt;code&gt;MHEARTBEAT = 15;&lt;/code&gt;
 </span><span style="color:#75715e"> *
@@ -354,9 +347,8 @@ XAROLLBACK(13, 14),
 </span><span style="color:#75715e"> * * MASTER HEARTBEAT *
 </span><span style="color:#75715e"> * &lt;/pre&gt;
 </span><span style="color:#75715e"> */</span>
-MHEARTBEAT(14, 15),;</code></pre></div>
-<h2 id="json">JSON</h2>
-
+MHEARTBEAT<span style="color:#f92672">(</span>14<span style="color:#f92672">,</span> 15<span style="color:#f92672">),;</span>
+</code></pre></div><h2 id="json">JSON</h2>
 <h3 id="create-table-create">CREATE TABLE (CREATE)</h3>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
     {
@@ -377,8 +369,8 @@ MHEARTBEAT(14, 15),;</code></pre></div>
         <span style="color:#f92672">&#34;ts&#34;</span>:<span style="color:#ae81ff">1554044748116</span>,
         <span style="color:#f92672">&#34;type&#34;</span>:<span style="color:#e6db74">&#34;CREATE&#34;</span>
     }
-]</code></pre></div>
-<h3 id="insert">INSERT</h3>
+]
+</code></pre></div><h3 id="insert">INSERT</h3>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
     {
         <span style="color:#f92672">&#34;data&#34;</span>:[
@@ -405,8 +397,8 @@ MHEARTBEAT(14, 15),;</code></pre></div>
         <span style="color:#f92672">&#34;ts&#34;</span>:<span style="color:#ae81ff">1554044748117</span>,
         <span style="color:#f92672">&#34;type&#34;</span>:<span style="color:#e6db74">&#34;INSERT&#34;</span>
     }
-]</code></pre></div>
-<h3 id="update">UPDATE</h3>
+]
+</code></pre></div><h3 id="update">UPDATE</h3>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
     {
         <span style="color:#f92672">&#34;data&#34;</span>:[
@@ -437,8 +429,8 @@ MHEARTBEAT(14, 15),;</code></pre></div>
         <span style="color:#f92672">&#34;ts&#34;</span>:<span style="color:#ae81ff">1554044877622</span>,
         <span style="color:#f92672">&#34;type&#34;</span>:<span style="color:#e6db74">&#34;UPDATE&#34;</span>
     }
-]</code></pre></div>
-<h3 id="delete">DELETE</h3>
+]
+</code></pre></div><h3 id="delete">DELETE</h3>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
     {
         <span style="color:#f92672">&#34;data&#34;</span>:[
@@ -465,8 +457,8 @@ MHEARTBEAT(14, 15),;</code></pre></div>
         <span style="color:#f92672">&#34;ts&#34;</span>:<span style="color:#ae81ff">1554044940882</span>,
         <span style="color:#f92672">&#34;type&#34;</span>:<span style="color:#e6db74">&#34;DELETE&#34;</span>
     }
-]</code></pre></div>
-<h3 id="alter-table-cindex">ALTER TABLE (CINDEX)</h3>
+]
+</code></pre></div><h3 id="alter-table-cindex">ALTER TABLE (CINDEX)</h3>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
     {
         <span style="color:#f92672">&#34;ts&#34;</span>:<span style="color:#ae81ff">1554041367827</span>,
@@ -478,8 +470,8 @@ MHEARTBEAT(14, 15),;</code></pre></div>
         <span style="color:#f92672">&#34;type&#34;</span>:<span style="color:#e6db74">&#34;CINDEX&#34;</span>
         <span style="color:#e6db74">&#34;es&#34;</span>:<span style="color:#ae81ff">1554041367000</span>,
     }
-]</code></pre></div>
-<h3 id="drop-table-erase">DROP TABLE (ERASE)</h3>
+]
+</code></pre></div><h3 id="drop-table-erase">DROP TABLE (ERASE)</h3>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
     {
         <span style="color:#f92672">&#34;data&#34;</span>:<span style="color:#66d9ef">null</span>,
@@ -496,8 +488,8 @@ MHEARTBEAT(14, 15),;</code></pre></div>
         <span style="color:#f92672">&#34;ts&#34;</span>:<span style="color:#ae81ff">1554045031258</span>,
         <span style="color:#f92672">&#34;type&#34;</span>:<span style="color:#e6db74">&#34;ERASE&#34;</span>
     }
-]</code></pre></div>
-<h3 id="alter-table-rename">ALTER TABLE (RENAME)</h3>
+]
+</code></pre></div><h3 id="alter-table-rename">ALTER TABLE (RENAME)</h3>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
     {
         <span style="color:#f92672">&#34;database&#34;</span>:<span style="color:#e6db74">&#34;test&#34;</span>,
@@ -509,8 +501,8 @@ MHEARTBEAT(14, 15),;</code></pre></div>
         <span style="color:#f92672">&#34;ts&#34;</span>:<span style="color:#ae81ff">1554045087466</span>,
         <span style="color:#f92672">&#34;type&#34;</span>:<span style="color:#e6db74">&#34;RENAME&#34;</span>
     }
-]</code></pre></div>
-<h3 id="alter-table-alter">ALTER TABLE (ALTER)</h3>
+]
+</code></pre></div><h3 id="alter-table-alter">ALTER TABLE (ALTER)</h3>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
     {
         <span style="color:#f92672">&#34;database&#34;</span>:<span style="color:#e6db74">&#34;test&#34;</span>,
@@ -522,7 +514,8 @@ MHEARTBEAT(14, 15),;</code></pre></div>
         <span style="color:#f92672">&#34;ts&#34;</span>:<span style="color:#ae81ff">1554045155706</span>,
         <span style="color:#f92672">&#34;type&#34;</span>:<span style="color:#e6db74">&#34;ALTER&#34;</span>
     }
-]</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
+]
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
     {
         <span style="color:#f92672">&#34;database&#34;</span>:<span style="color:#e6db74">&#34;test&#34;</span>,
         <span style="color:#f92672">&#34;es&#34;</span>:<span style="color:#ae81ff">1554045230000</span>,
@@ -533,9 +526,8 @@ MHEARTBEAT(14, 15),;</code></pre></div>
         <span style="color:#f92672">&#34;ts&#34;</span>:<span style="color:#ae81ff">1554045230994</span>,
         <span style="color:#f92672">&#34;type&#34;</span>:<span style="color:#e6db74">&#34;ALTER&#34;</span>
     }
-]</code></pre></div>
-<h3 id="更新多行">更新多行</h3>
-
+]
+</code></pre></div><h3 id="更新多行">更新多行</h3>
 <pre><code>[
     {
         &quot;data&quot;:[
@@ -578,9 +570,7 @@ MHEARTBEAT(14, 15),;</code></pre></div>
         &quot;type&quot;:&quot;UPDATE&quot;
     }
 ]
-</code></pre>
-
-<h3 id="删除多行">删除多行</h3>
+</code></pre><h3 id="删除多行">删除多行</h3>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
     {
         <span style="color:#f92672">&#34;data&#34;</span>:[
@@ -615,7 +605,8 @@ MHEARTBEAT(14, 15),;</code></pre></div>
         <span style="color:#f92672">&#34;ts&#34;</span>:<span style="color:#ae81ff">1554045543209</span>,
         <span style="color:#f92672">&#34;type&#34;</span>:<span style="color:#e6db74">&#34;DELETE&#34;</span>
     }
-]</code></pre></div></article>
+]
+</code></pre></div></article>
 
       
 <div class="book-footer justify-between">
@@ -645,27 +636,25 @@ MHEARTBEAT(14, 15),;</code></pre></div>
 
   <aside class="book-toc level-3 fixed">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#数据格式">数据格式</a>
-<ul>
-<li><a href="#flatmessage-message">FlatMessage - Message</a></li>
-<li><a href="#canalentry-entrytype">CanalEntry.EntryType</a></li>
-<li><a href="#canalentry-eventtype">CanalEntry.EventType</a></li>
-<li><a href="#json">JSON</a>
-<ul>
-<li><a href="#create-table-create">CREATE TABLE (CREATE)</a></li>
-<li><a href="#insert">INSERT</a></li>
-<li><a href="#update">UPDATE</a></li>
-<li><a href="#delete">DELETE</a></li>
-<li><a href="#alter-table-cindex">ALTER TABLE (CINDEX)</a></li>
-<li><a href="#drop-table-erase">DROP TABLE (ERASE)</a></li>
-<li><a href="#alter-table-rename">ALTER TABLE (RENAME)</a></li>
-<li><a href="#alter-table-alter">ALTER TABLE (ALTER)</a></li>
-<li><a href="#更新多行">更新多行</a></li>
-<li><a href="#删除多行">删除多行</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#flatmessage---message">FlatMessage - Message</a></li>
+    <li><a href="#canalentryentrytype">CanalEntry.EntryType</a></li>
+    <li><a href="#canalentryeventtype">CanalEntry.EventType</a></li>
+    <li><a href="#json">JSON</a>
+      <ul>
+        <li><a href="#create-table-create">CREATE TABLE (CREATE)</a></li>
+        <li><a href="#insert">INSERT</a></li>
+        <li><a href="#update">UPDATE</a></li>
+        <li><a href="#delete">DELETE</a></li>
+        <li><a href="#alter-table-cindex">ALTER TABLE (CINDEX)</a></li>
+        <li><a href="#drop-table-erase">DROP TABLE (ERASE)</a></li>
+        <li><a href="#alter-table-rename">ALTER TABLE (RENAME)</a></li>
+        <li><a href="#alter-table-alter">ALTER TABLE (ALTER)</a></li>
+        <li><a href="#更新多行">更新多行</a></li>
+        <li><a href="#删除多行">删除多行</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </aside>
 

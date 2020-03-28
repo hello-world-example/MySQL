@@ -7,7 +7,7 @@
 <title>Mac Multiple Instance | MySQL</title>
 
 
-<link rel="stylesheet" href="/MySQL/book.min.79de1f7861b0c98f453c0a93bebf3608a280809e417787746c373699639900d7.css">
+<link rel="stylesheet" href="/MySQL/book.min.a2277534155c5e81ce2c8ca6a4cd295525f25c75788a2e4e72c3310491c743b1.css">
 
 
 
@@ -50,39 +50,43 @@ https://github.com/alex-shpak/hugo-book
   </style>
 
 <ul>
-<li><strong>安装</strong>
-
+<li><strong>Install</strong>
 <ul>
 <li><a href="/MySQL/docs/Install/Mac-Multiple-Instance/">MAC 多实例安装 和 主从配置</a></li>
 <li><a href="/MySQL/docs/Install/Docker-Multiple-Instance/">使用 Docker 搭建主从测试</a></li>
-</ul></li>
+</ul>
+</li>
 <li><strong>JDBC</strong>
-
 <ul>
 <li><a href="/MySQL/docs/Jdbc/FetchSize/">FetchSize 处理大结果集</a></li>
-<li><a href="/MySQL/docs/Jdbc/DataSource/">DataSource</a></li>
-</ul></li>
-<li><strong>优化</strong></li>
+<li><a href="/MySQL/docs/Jdbc/DataSource/">DataSource 配置</a></li>
+</ul>
+</li>
+<li><strong>Better</strong>
+<ul>
+<li><a href="/MySQL/docs/Better/innodb_lock_wait_timeout/">锁等待时间</a></li>
+</ul>
+</li>
 <li><strong>Binlog</strong>
-
 <ul>
 <li><a href="/MySQL/docs/Binlog/Quick-Start/">快速入门</a></li>
 <li><a href="/MySQL/docs/Binlog/Gtid/">GTID</a></li>
 <li><a href="/MySQL/docs/Binlog/binlog-protocol/">_binlog 协议</a></li>
 <li><a href="/MySQL/docs/Binlog/parse-binlog-by-java/">_Java 解析 binlog</a></li>
 <li><a href="/MySQL/docs/Binlog/parse-binlog-by-canal/">_Canal 订阅 binlog</a></li>
-</ul></li>
+</ul>
+</li>
 <li><strong>Canal</strong>
-
 <ul>
 <li><a href="/MySQL/docs/canal/introduce/">Canal 简介</a></li>
 <li><a href="/MySQL/docs/canal/data-type/">数据格式</a></li>
-</ul></li>
+</ul>
+</li>
 <li><strong>其他</strong>
-
 <ul>
 <li><a href="/MySQL/docs/rds_dbsync/">MySQL 全量同步 Postgres</a></li>
-</ul></li>
+</ul>
+</li>
 </ul>
 
 
@@ -115,10 +119,7 @@ https://github.com/alex-shpak/hugo-book
 </header>
 
       
-<article class="markdown">
-
-<h1 id="mac-多实例安装-和-主从配置">MAC 多实例安装 和 主从配置</h1>
-
+<article class="markdown"><h1 id="mac-多实例安装-和-主从配置">MAC 多实例安装 和 主从配置</h1>
 <h2 id="如果已经安装-mysql-查看安装路径在哪">如果已经安装 MySQL 查看安装路径在哪</h2>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 查看 mysqld 所在目录</span>
 $ which mysqld
@@ -130,8 +131,8 @@ lrwxr-xr-x  ... /usr/local/bin/mysqld -&gt; ../Cellar/mysql/5.7.17/bin/mysqld
 
 $ cd /usr/local/Cellar/mysql/5.7.17/
 $ pwd
-/usr/local/Cellar/mysql/5.7.17</code></pre></div>
-<h2 id="启动多实例">启动多实例</h2>
+/usr/local/Cellar/mysql/5.7.17
+</code></pre></div><h2 id="启动多实例">启动多实例</h2>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 创建两个目录</span>
 $ mkdir -p /opt/mysql_3307
 $ mkdir -p /opt/mysql_3308
@@ -160,14 +161,13 @@ $ mysqld --defaults-file<span style="color:#f92672">=</span>/opt/mysql_3308/my.c
 
 <span style="color:#75715e"># 启动 MySQL</span>
 $ mysqld --defaults-file<span style="color:#f92672">=</span>/opt/mysql_3307/my.cnf &amp;
-$ mysqld --defaults-file<span style="color:#f92672">=</span>/opt/mysql_3308/my.cnf &amp;</code></pre></div>
-<blockquote>
+$ mysqld --defaults-file<span style="color:#f92672">=</span>/opt/mysql_3308/my.cnf &amp;
+</code></pre></div><blockquote>
 <ul>
 <li><a href="https://dev.mysql.com/doc/refman/5.7/en/data-directory-initialization.html">2.10.1 Initializing the Data Directory 官方文档</a></li>
 <li><a href="https://dev.mysql.com/doc/refman/5.7/en/mysqld-safe.html">4.3.2 mysqld_safe — MySQL Server Startup Script</a></li>
 </ul>
 </blockquote>
-
 <h2 id="创建主从关系">创建主从关系</h2>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ vim /opt/mysql_3307/my.cnf
 <span style="color:#75715e"># 新增</span>
@@ -207,16 +207,16 @@ mysql&gt; show master status;
 +-------------------+----------+--------------+------------------+-------------------+
 | master-bin.000001 |      <span style="color:#ae81ff">154</span> |              |                  |                   |
 +-------------------+----------+--------------+------------------+-------------------+
-<span style="color:#ae81ff">1</span> row in set <span style="color:#f92672">(</span><span style="color:#ae81ff">0</span>.00 sec<span style="color:#f92672">)</span>
+<span style="color:#ae81ff">1</span> row in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
 
 <span style="color:#75715e"># 登陆 salve</span>
 $ mysql -uroot -S /opt/mysql_3308/mysql.sock
 
 <span style="color:#75715e"># change master to master_host=&#39;127.0.0.1&#39;,master_port=3307,master_user=&#39;root&#39;,master_password=&#39;&#39;,master_log_file=&#39;master-bin.000001&#39;,master_log_pos=0;</span>
 mysql&gt; change master to master_host<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;127.0.0.1&#39;</span>,
-    -&gt; master_port<span style="color:#f92672">=</span><span style="color:#ae81ff">3307</span>,master_user<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;root&#39;</span>,master_password<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;123456&#39;</span>,
+    -&gt; master_port<span style="color:#f92672">=</span>3307,master_user<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;root&#39;</span>,master_password<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;123456&#39;</span>,
     -&gt; master_log_file<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;master-bin.000001&#39;</span>,
-    -&gt; master_log_pos<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>; <span style="color:#75715e"># 指定请求同步Master的bin-log的哪个变更之后的内容</span>
+    -&gt; master_log_pos<span style="color:#f92672">=</span>0; <span style="color:#75715e"># 指定请求同步Master的bin-log的哪个变更之后的内容</span>
     
 mysql&gt; start slave;
 
@@ -224,8 +224,8 @@ mysql&gt; show slave status <span style="color:#ae81ff">\G</span>
 
 <span style="color:#75715e"># 如果显示的Slave_IO_Running和Slave_SQL_Running的状态都是yes说明，主从配置成功，只要有一个配置不成功，说明配置不成功</span>
 <span style="color:#75715e"># Slave_IO_Running：连接到主库，并读取主库的日志到本地，生成本地日志文件</span>
-<span style="color:#75715e"># Slave_SQL_Running:读取本地日志文件，并执行日志里的SQL命令</span></code></pre></div>
-<h2 id="主从复制之前数据同步">主从复制之前数据同步</h2>
+<span style="color:#75715e"># Slave_SQL_Running:读取本地日志文件，并执行日志里的SQL命令</span>
+</code></pre></div><h2 id="主从复制之前数据同步">主从复制之前数据同步</h2>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 从库上停止 复制</span>
 $ mysql&gt; stop slave;
 
@@ -236,16 +236,13 @@ $ mysqldump -uroot -p --all-databases --master-data<span style="color:#f92672">=
 $ mysql -uroot  -S /opt/mysql_3308/mysql.sock &lt; /tmp/master1.sql
 
 <span style="color:#75715e"># 从库上开启 复制</span>
-$ mysql&gt; start slave;</code></pre></div>
-<h2 id="注意事项">注意事项</h2>
-
+$ mysql&gt; start slave;
+</code></pre></div><h2 id="注意事项">注意事项</h2>
 <ul>
 <li>从库一般禁止修改，否则主从复制会报错，从库一般需要创建只读的账户</li>
 <li>如果主从复制报错，<code>stop slave;</code>  然后全量同步数据，之后重新制定主库，然后 <code>start slave;</code></li>
 </ul>
-
 <h2 id="read-more">Read More</h2>
-
 <ul>
 <li><a href="https://www.cnblogs.com/chenmh/p/5300370.html">MySQL mysqldump数据导出详解</a></li>
 <li><a href="https://blog.csdn.net/seteor/article/details/17263509">mysqldump的&ndash;master-data参数</a></li>
@@ -281,17 +278,14 @@ $ mysql&gt; start slave;</code></pre></div>
 
   <aside class="book-toc level-3 fixed">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#mac-多实例安装-和-主从配置">MAC 多实例安装 和 主从配置</a>
-<ul>
-<li><a href="#如果已经安装-mysql-查看安装路径在哪">如果已经安装 MySQL 查看安装路径在哪</a></li>
-<li><a href="#启动多实例">启动多实例</a></li>
-<li><a href="#创建主从关系">创建主从关系</a></li>
-<li><a href="#主从复制之前数据同步">主从复制之前数据同步</a></li>
-<li><a href="#注意事项">注意事项</a></li>
-<li><a href="#read-more">Read More</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#如果已经安装-mysql-查看安装路径在哪">如果已经安装 MySQL 查看安装路径在哪</a></li>
+    <li><a href="#启动多实例">启动多实例</a></li>
+    <li><a href="#创建主从关系">创建主从关系</a></li>
+    <li><a href="#主从复制之前数据同步">主从复制之前数据同步</a></li>
+    <li><a href="#注意事项">注意事项</a></li>
+    <li><a href="#read-more">Read More</a></li>
+  </ul>
 </nav>
   </aside>
 
