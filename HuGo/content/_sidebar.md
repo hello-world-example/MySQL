@@ -2,13 +2,14 @@
 headless: true
 ---
 
-* **安装**
+* **Install**
   * [MAC 多实例安装 和 主从配置]({{< relref "/docs/Install/Mac-Multiple-Instance.md" >}})
   * [使用 Docker 搭建主从测试]({{< relref "/docs/Install/Docker-Multiple-Instance.md" >}})
 * **JDBC**
   * [FetchSize 处理大结果集]({{< relref "/docs/Jdbc/FetchSize.md" >}})
-  * [DataSource]({{< relref "/docs/Jdbc/DataSource.md" >}})
-* **优化**
+  * [DataSource 配置]({{< relref "/docs/Jdbc/DataSource.md" >}})
+* **Better**
+  * [锁等待时间]({{< relref "/docs/Better/innodb_lock_wait_timeout.md" >}})
 * **Binlog**
   * [快速入门]({{< relref "/docs/Binlog/Quick-Start.md" >}})
   * [GTID]({{< relref "/docs/Binlog/Gtid.md" >}})
