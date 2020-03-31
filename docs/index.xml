@@ -15,7 +15,7 @@
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>https://hello-world-example.github.io/MySQL/_sidebar/</guid>
-      <description> Install  MAC 多实例安装 和 主从配置 使用 Docker 搭建主从测试   JDBC  FetchSize 处理大结果集 DataSource 配置   Better  锁等待时间 链接超时时间   Binlog  快速入门 GTID _binlog 协议 _Java 解析 binlog _Canal 订阅 binlog   Canal  Canal 简介 数据格式   其他  MySQL 全量同步 Postgres    </description>
+      <description> Install  MAC 多实例安装 和 主从配置 使用 Docker 搭建主从测试   JDBC  FetchSize 处理大结果集 DataSource 配置   Better  锁等待时间 连接超时时间   Binlog  快速入门 GTID _binlog 协议 _Java 解析 binlog _Canal 订阅 binlog   Canal  Canal 简介 数据格式   其他  MySQL 全量同步 Postgres    </description>
     </item>
     
     <item>
@@ -33,9 +33,9 @@
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>https://hello-world-example.github.io/MySQL/docs/Better/wait_timeout/</guid>
-      <description>链接超时时间 有时系统中会报以下异常
+      <description>连接超时时间 有时系统中会报以下异常
 The last packet successfully received from the server was 12,345 milliseconds ago. The last packet sent successfully to the server was 67,890 milliseconds ago.; nested exception is com.mysql.jdbc.exceptions.jdbc4.CommunicationsException: Communications link failure 大致含义是：
- 最后一次从 MySQL Server 接收消息在 12,345 毫秒前 最后一次 发送消息 到 MySQL Server 在 67,890 毫秒前 异常原因是 链接失败，但是造成 链接失败 的原因有很多，常见的有  连接被 MySQL 主动断开（wait_timeout） 连接被人工 kill 掉 &amp;hellip;    wait_timeout 和 interactive_timeout  wait_timeout  服务器在关闭 非交互连接 之前等待其活动的秒数 默认 28800s 即 8h 经典的 8小时问题，即一个链接空闲 8h，会主动被 MySQL Server 断开 在一些访问量较小 或 定时任务系统中可能会出现   interactive_timeout  服务器在关闭 交互式连接 之前等待其活动的秒数 默认 28800s 即 8h      非交互连接 ：JDBC 链接，wait_timeout 继承全局 wait_timeout 交互式连接 ：MySQL 控制台链接，wait_timeout 继承全局 interactive_timeout 总结：无需关注连接方式，关注 wait_timeout 即可，其值会覆盖 interactive_timeout   测试 -- 默认 8h mysql&amp;gt; show variables like &amp;#39;wait_timeout&amp;#39;; +---------------+-------+ | Variable_name | Value | +---------------+-------+ | wait_timeout | 28800 | +---------------+-------+ -- 修改为 5s mysql&amp;gt; set session wait_timeout = 5; -- 查看修改结果 mysql&amp;gt; show variables like &amp;#39;wait_timeout&amp;#39;; +---------------+-------+ | Variable_name | Value | +---------------+-------+ | wait_timeout | 5 | +---------------+-------+ mysql&amp;gt; -- 等待 5s 以上 mysql&amp;gt; show variables like &amp;#39;wait_timeout&amp;#39;; ERROR 2006 (HY000): MySQL server has gone away No connection.</description>
+ 最后一次从 MySQL Server 接收消息在 12,345 毫秒前 最后一次 发送消息 到 MySQL Server 在 67,890 毫秒前 异常原因是 连接失败，但是造成 连接失败 的原因有很多，常见的有  连接被 MySQL 主动断开（wait_timeout） 连接被人工 kill 掉 &amp;hellip;    wait_timeout 和 interactive_timeout  wait_timeout  服务器在关闭 非交互连接 之前等待其活动的秒数 默认 28800s 即 8h 经典的 8小时问题，即一个连接空闲 8h，会主动被 MySQL Server 断开 在一些访问量较小 或 定时任务系统中可能会出现，如一天才执行一次的任务，期间连接一直空闲   interactive_timeout  服务器在关闭 交互式连接 之前等待其活动的秒数 默认 28800s 即 8h      非交互连接 ：JDBC 连接，wait_timeout 继承全局 wait_timeout 交互式连接 ：MySQL 控制台连接，wait_timeout 继承全局 interactive_timeout 总结：无需关注连接方式，关注 wait_timeout 即可，其值会覆盖 interactive_timeout   测试 -- 默认 8h mysql&amp;gt; show variables like &amp;#39;wait_timeout&amp;#39;; +---------------+-------+ | Variable_name | Value | +---------------+-------+ | wait_timeout | 28800 | +---------------+-------+ -- 修改为 5s mysql&amp;gt; set session wait_timeout = 5; -- 查看修改结果 mysql&amp;gt; show variables like &amp;#39;wait_timeout&amp;#39;; +---------------+-------+ | Variable_name | Value | +---------------+-------+ | wait_timeout | 5 | +---------------+-------+ mysql&amp;gt; -- 等待 5s 以上 mysql&amp;gt; show variables like &amp;#39;wait_timeout&amp;#39;; ERROR 2006 (HY000): MySQL server has gone away No connection.</description>
     </item>
     
     <item>

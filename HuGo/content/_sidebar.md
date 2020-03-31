@@ -10,7 +10,7 @@ headless: true
   * [DataSource 配置]({{< relref "/docs/Jdbc/DataSource.md" >}})
 * **Better**
   * [锁等待时间]({{< relref "/docs/Better/innodb_lock_wait_timeout.md" >}})
-  * [链接超时时间]({{< relref "/docs/Better/wait_timeout.md" >}})
+  * [连接超时时间]({{< relref "/docs/Better/wait_timeout.md" >}})
 * **Binlog**
   * [快速入门]({{< relref "/docs/Binlog/Quick-Start.md" >}})
   * [GTID]({{< relref "/docs/Binlog/Gtid.md" >}})

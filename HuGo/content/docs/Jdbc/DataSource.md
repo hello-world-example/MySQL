@@ -18,6 +18,8 @@
 |  **maxEvictableIdleTimeMillis**   | `25200000`<br />`7h` | 小于 MySQL `wait_timeout`参数 | **针对所有连接**，超过空闲时间会被驱逐，**解决 8 小时问题**，建议检查 `wait_timeout` 参数 |
 |       **phyTimeoutMillis**        |         `-1`         |                               | 针对所有连接**，**创建时间**超过该时间被驱逐**               |
 |        connectionInitSqls         |                      |                               | 物理连接初始化的时候执行的 sql                               |
+|          removeAbandoned          |       `false`        |                               | 检查从 Pool 中获取链接，配合 `removeAbandonedTimeoutMillis`  |
+|   removeAbandonedTimeoutMillis    |  `300000`<br />`5m`  |                               | 申请链接成功后，一直占用超过指定的时间不归还，适用于 ：kill 慢SQL、链接泄露等 |
 
 ## 关键参数评估
 

@@ -65,7 +65,7 @@ https://github.com/alex-shpak/hugo-book
 <li><strong>Better</strong>
 <ul>
 <li><a href="/MySQL/docs/Better/innodb_lock_wait_timeout/">锁等待时间</a></li>
-<li><a href="/MySQL/docs/Better/wait_timeout/">链接超时时间</a></li>
+<li><a href="/MySQL/docs/Better/wait_timeout/">连接超时时间</a></li>
 </ul>
 </li>
 <li><strong>Binlog</strong>
@@ -227,6 +227,18 @@ https://github.com/alex-shpak/hugo-book
 <td align="center"></td>
 <td>物理连接初始化的时候执行的 sql</td>
 </tr>
+<tr>
+<td align="center">removeAbandoned</td>
+<td align="center"><code>false</code></td>
+<td align="center"></td>
+<td>检查从 Pool 中获取链接，配合 <code>removeAbandonedTimeoutMillis</code></td>
+</tr>
+<tr>
+<td align="center">removeAbandonedTimeoutMillis</td>
+<td align="center"><code>300000</code><!-- raw HTML omitted --><code>5m</code></td>
+<td align="center"></td>
+<td>申请链接成功后，一直占用超过指定的时间不归还，适用于 ：kill 慢SQL、链接泄露等</td>
+</tr>
 </tbody>
 </table>
 <h2 id="关键参数评估">关键参数评估</h2>
@@ -302,8 +314,8 @@ https://github.com/alex-shpak/hugo-book
   
   <div>
     
-    <a href="https://github.com/hello-world-example/MySQL/commit/953af03889fee5583a1fca1a883aeb8961a80de0" title='Last modified Dec 18, 2019 by kailbin' target="_blank" rel="noopener">
-      <img src="/MySQL/svg/calendar.svg" alt="Changed" /> Dec 18, 2019
+    <a href="https://github.com/hello-world-example/MySQL/commit/54cedb50c262a6455c4a74ca79cc58986e257d1e" title='Last modified Apr 1, 2020 by kailbin' target="_blank" rel="noopener">
+      <img src="/MySQL/svg/calendar.svg" alt="Changed" /> Apr 1, 2020
     </a>
   </div>
   
