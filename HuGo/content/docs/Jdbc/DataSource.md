@@ -1,22 +1,23 @@
 # 数据源配置
 
-|                         Druid 数据源                         |    建议    | 说明                                                         |
-| :----------------------------------------------------------: | :--------: | ------------------------------------------------------------ |
-|                      **initialSize**(0)                      |    `10`    | 初始化时建立物理连接的个数                                   |
-|                        **minIdle**(0)                        |    `10`    | 最小连接池数量                                               |
-|                       **maxActive**(8)                       |    `50`    | 最大连接池数量                                               |
-|                      **maxWait**(-1ms)                       |   `1000`   | 当没有可用连接时，等待连接被归还的最大时间，单位毫秒，-1 无限等待 |
-|                    ~~maxIdle~~<br />废弃                     |            | 空闲状态的最大连接数量,超过的空闲连接将被释放                |
-|       poolPreparedStatements <br />[default: `false`]        |            | PSCache 对支持游标的数据库性能提升巨大，比如说 Oracle，**在mysql下建议关闭** 。配合 `maxPoolPreparedStatementPerConnectionSize ` **大于0 时，自动触发修改为 true** |
-|                     **validationQuery**                      | `select 1` | 检测连接是否有效的 sql，如：`select 'x'`。**如果为null，testOnXxx 都不会起作用** |
-|            **testOnBorrow** <br />[default:true]             |  `false`   | 申请连接时检测连接是否有效，做了这个配置会降低性能           |
-|            **testOnReturn** <br />[default:false]            |  `false`   | 归还连接时检测连接是否有效，做了这个配置会降低性能           |
-|            **testWhileIdle**<br />[default:false]            |   `true`   | 空闲时检查链接是否有效，如果空闲时间大于`timeBetweenEvictionRunsMillis` 进行检查 |
-|               keepAlive <br />[default:false]                |            | 连接池中的 `minIdle` 数量以内的连接，空闲时间超过`minEvictableIdleTimeMillis`，则会执行`keepAlive`操作。 |
-|  **timeBetweenEvictionRunsMillis**<br />[def: 1m = 60 000]   |  `60000`   | 检测连接线程执行的间隔时间，如果连接空闲时间大于等于`minEvictableIdleTimeMillis` 则关闭物理连接，-1 不检查 |
-|                  ~~numTestsPerEvictionRun~~                  |            | ~~不再使用，一个 DruidDataSource 只支持一个EvictionRun~~     |
-| **minEvictableIdleTimeMillis** <br />[default: 30m = 1800 000] |  `300000`  | 连接保持空闲而不被驱逐的最小时间                             |
-|                      connectionInitSqls                      |            | 物理连接初始化的时候执行的sql                                |
+|           Druid 数据源            |         默认         |             建议              | 说明                                                         |
+| :-------------------------------: | :------------------: | :---------------------------: | ------------------------------------------------------------ |
+|          **initialSize**          |         `0`          |             `10`              | 初始化时建立物理连接的个数                                   |
+|            **minIdle**            |         `0`          |             `10`              | 最小连接池数量（核心链接数）                                 |
+|           **maxActive**           |         `8`          |             `50`              | 最大连接池数量                                               |
+|            ~~maxIdle~~            |                      |                               | 废弃                                                         |
+|            **maxWait**            |         `-1`         |            `1000`             | 当没有可用连接时，等待连接被归还的最大时间，单位毫秒，-1 无限等待 |
+|      poolPreparedStatements       |       `false`        |                               | PSCache 对支持游标的数据库性能提升巨大，比如说 Oracle，**在mysql下建议关闭** 。配合 `maxPoolPreparedStatementPerConnectionSize ` **大于0 时，自动触发修改为 true** |
+|        **validationQuery**        |        `null`        |          `select 1`           | 检测连接是否有效的 sql，如：`select 'x'`。**如果为null，testOnXxx 都不会起作用** |
+|         **testOnBorrow**          |       `false`        |                               | 申请连接时检测连接是否有效，做了这个配置会降低性能           |
+|         **testOnReturn**          |       `false`        |                               | 归还连接时检测连接是否有效，做了这个配置会降低性能           |
+|         **testWhileIdle**         |        `true`        |                               | 空闲时检查链接是否有效，如果空闲时间大于`timeBetweenEvictionRunsMillis` 进行检查 |
+|             keepAlive             |       `false`        |                               | 连接池中的 `minIdle` 数量以内的连接，空闲时间超过`minEvictableIdleTimeMillis`，则会执行`keepAlive`操作。 |
+| **timeBetweenEvictionRunsMillis** |  `60000`<br />`1m`   |                               | 1. 检测连接线程执行的间隔时间，如果连接空闲时间大于等于`minEvictableIdleTimeMillis` 则关闭物理连接，-1 不检查<br />2. 获取连接时判断空闲连接是否可用的阀值 |
+|  **minEvictableIdleTimeMillis**   | `1800000`<br />`30m` |      `300000`<br />`5m`       | **针对大于核心连接数(minIdle)的链接**，超过空闲时间会被驱逐  |
+|  **maxEvictableIdleTimeMillis**   | `25200000`<br />`7h` | 小于 MySQL `wait_timeout`参数 | **针对所有连接**，超过空闲时间会被驱逐，**解决 8 小时问题**，建议检查 `wait_timeout` 参数 |
+|       **phyTimeoutMillis**        |         `-1`         |                               | 针对所有连接**，**创建时间**超过该时间被驱逐**               |
+|        connectionInitSqls         |                      |                               | 物理连接初始化的时候执行的 sql                               |
 
 ## 关键参数评估
 

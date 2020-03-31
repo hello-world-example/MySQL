@@ -6,12 +6,13 @@
 
     <groupId>MySQL</groupId>
     <artifactId>MySQL</artifactId>
-    <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
     <modules>
         <module>demo-mysql-oneproxy</module>
+        <module>demo-mysql-jdbc</module>
     </modules>
-
 
     <properties>
         <java.version>8</java.version>
@@ -24,6 +25,13 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>5.1.47</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.12</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -47,5 +55,13 @@
         </plugins>
     </build>
 
+    <repositories>
+
+        <repository>
+            <id>aliyun</id>
+            <url>https://maven.aliyun.com/repository/public</url>
+        </repository>
+
+    </repositories>
 
 </project>

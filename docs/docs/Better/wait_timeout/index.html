@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wait Timeout | MySQL</title>
+
+
+<link rel="stylesheet" href="/MySQL/book.min.a2277534155c5e81ce2c8ca6a4cd295525f25c75788a2e4e72c3310491c743b1.css">
+
+
+
+
+<link rel="icon" href="/MySQL/favicon.png" type="image/x-icon">
+
+
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+</head>
+
+<body>
+  <input type="checkbox" style="display: none" id="menu-control" />
+  <main class="flex container">
+
+    <aside class="book-menu fixed">
+      <nav>
+<h2 class="book-brand">
+  <a href="https://hello-world-example.github.io/MySQL/">MySQL</a>
+</h2>
+
+
+
+
+
+
+    
+  
+  
+  
+
+  <style>
+  nav ul a[href$="\2fMySQL\2f docs\2f Better\2fwait_timeout\2f "] {
+      color: #004ed0;
+  }
+  </style>
+
+<ul>
+<li><strong>Install</strong>
+<ul>
+<li><a href="/MySQL/docs/Install/Mac-Multiple-Instance/">MAC 多实例安装 和 主从配置</a></li>
+<li><a href="/MySQL/docs/Install/Docker-Multiple-Instance/">使用 Docker 搭建主从测试</a></li>
+</ul>
+</li>
+<li><strong>JDBC</strong>
+<ul>
+<li><a href="/MySQL/docs/Jdbc/FetchSize/">FetchSize 处理大结果集</a></li>
+<li><a href="/MySQL/docs/Jdbc/DataSource/">DataSource 配置</a></li>
+</ul>
+</li>
+<li><strong>Better</strong>
+<ul>
+<li><a href="/MySQL/docs/Better/innodb_lock_wait_timeout/">锁等待时间</a></li>
+<li><a href="/MySQL/docs/Better/wait_timeout/">链接超时时间</a></li>
+</ul>
+</li>
+<li><strong>Binlog</strong>
+<ul>
+<li><a href="/MySQL/docs/Binlog/Quick-Start/">快速入门</a></li>
+<li><a href="/MySQL/docs/Binlog/Gtid/">GTID</a></li>
+<li><a href="/MySQL/docs/Binlog/binlog-protocol/">_binlog 协议</a></li>
+<li><a href="/MySQL/docs/Binlog/parse-binlog-by-java/">_Java 解析 binlog</a></li>
+<li><a href="/MySQL/docs/Binlog/parse-binlog-by-canal/">_Canal 订阅 binlog</a></li>
+</ul>
+</li>
+<li><strong>Canal</strong>
+<ul>
+<li><a href="/MySQL/docs/canal/introduce/">Canal 简介</a></li>
+<li><a href="/MySQL/docs/canal/data-type/">数据格式</a></li>
+</ul>
+</li>
+<li><strong>其他</strong>
+<ul>
+<li><a href="/MySQL/docs/rds_dbsync/">MySQL 全量同步 Postgres</a></li>
+</ul>
+</li>
+</ul>
+
+
+
+
+
+
+
+</nav>
+
+
+<script>
+(function() {
+  var menu = document.querySelector("aside.book-menu nav");
+  addEventListener("beforeunload", function(event) {
+    localStorage.setItem("menu.scrollTop", menu.scrollTop);
+  });
+  menu.scrollTop = localStorage.getItem("menu.scrollTop");
+})();
+</script>
+
+    </aside>
+
+    <div class="book-page">
+      <header class="flex align-center justify-between book-header">
+  <label for="menu-control">
+    <img src="/MySQL/svg/menu.svg" alt="Menu" />
+  </label>
+  <strong>Wait Timeout</strong>
+</header>
+
+      
+<article class="markdown"><h1 id="链接超时时间">链接超时时间</h1>
+<p>有时系统中会报以下异常</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">The last packet successfully received from the server was 12<span style="color:#f92672">,</span>345 milliseconds ago<span style="color:#f92672">.</span>  
+The last packet sent successfully to the server was 67<span style="color:#f92672">,</span>890 milliseconds ago<span style="color:#f92672">.;</span> 
+nested exception is com<span style="color:#f92672">.</span><span style="color:#a6e22e">mysql</span><span style="color:#f92672">.</span><span style="color:#a6e22e">jdbc</span><span style="color:#f92672">.</span><span style="color:#a6e22e">exceptions</span><span style="color:#f92672">.</span><span style="color:#a6e22e">jdbc4</span><span style="color:#f92672">.</span><span style="color:#a6e22e">CommunicationsException</span><span style="color:#f92672">:</span> Communications link failure
+</code></pre></div><p>大致含义是：</p>
+<ul>
+<li>最后一次从 MySQL Server <strong>接收消息</strong>在 12,345 毫秒前</li>
+<li>最后一次 <strong>发送消息</strong> 到 MySQL Server 在 67,890 毫秒前</li>
+<li>异常原因是 <strong>链接失败</strong>，但是造成 链接失败 的原因有很多，常见的有
+<ul>
+<li>连接被 MySQL 主动断开（<code>wait_timeout</code>）</li>
+<li>连接被人工 kill 掉</li>
+<li>&hellip;</li>
+</ul>
+</li>
+</ul>
+<h2 id="wait_timeout-和-interactive_timeout">wait_timeout 和 interactive_timeout</h2>
+<ul>
+<li><strong>wait_timeout</strong>
+<ul>
+<li>服务器在关闭 <strong>非交互连接</strong> 之前等待其活动的秒数</li>
+<li>默认 <code>28800s</code>  即 <code>8h</code></li>
+<li><strong>经典的 8小时问题</strong>，即一个链接空闲 8h，会主动被 MySQL Server 断开</li>
+<li>在一些访问量较小 或 定时任务系统中可能会出现</li>
+</ul>
+</li>
+<li><strong>interactive_timeout</strong>
+<ul>
+<li>服务器在关闭 <strong>交互式连接</strong> 之前等待其活动的秒数</li>
+<li>默认 <code>28800s</code>  即 <code>8h</code></li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<ul>
+<li><strong>非交互连接</strong> ：JDBC 链接，<code>wait_timeout</code> 继承全局 <code>wait_timeout</code></li>
+<li><strong>交互式连接</strong> ：MySQL 控制台链接，<code>wait_timeout</code> 继承全局 interactive_timeout</li>
+<li>总结：<del>无需关注连接方式</del>，<strong>关注 <code>wait_timeout</code>  即可，其值会覆盖  <code>interactive_timeout</code></strong></li>
+</ul>
+</blockquote>
+<h3 id="测试">测试</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql"><span style="color:#75715e">-- 默认 8h
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</span> variables <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;wait_timeout&#39;</span>;
+<span style="color:#f92672">+---------------+-------+</span>
+<span style="color:#f92672">|</span> Variable_name <span style="color:#f92672">|</span> Value <span style="color:#f92672">|</span>
+<span style="color:#f92672">+---------------+-------+</span>
+<span style="color:#f92672">|</span> wait_timeout  <span style="color:#f92672">|</span> <span style="color:#ae81ff">28800</span> <span style="color:#f92672">|</span>
+<span style="color:#f92672">+---------------+-------+</span>
+
+<span style="color:#75715e">-- 修改为 5s
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">set</span> session wait_timeout <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span>;
+<span style="color:#75715e">-- 查看修改结果
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</span> variables <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;wait_timeout&#39;</span>;
+<span style="color:#f92672">+---------------+-------+</span>
+<span style="color:#f92672">|</span> Variable_name <span style="color:#f92672">|</span> Value <span style="color:#f92672">|</span>
+<span style="color:#f92672">+---------------+-------+</span>
+<span style="color:#f92672">|</span> wait_timeout  <span style="color:#f92672">|</span> <span style="color:#ae81ff">5</span>     <span style="color:#f92672">|</span>
+<span style="color:#f92672">+---------------+-------+</span>
+
+mysql<span style="color:#f92672">&gt;</span> <span style="color:#75715e">-- 等待 5s 以上
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</span> variables <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;wait_timeout&#39;</span>;
+ERROR <span style="color:#ae81ff">2006</span> (HY000): MySQL server has gone away 
+No connection. Trying <span style="color:#66d9ef">to</span> reconnect...
+Connection id:    <span style="color:#ae81ff">4</span>
+Current <span style="color:#66d9ef">database</span>: <span style="color:#f92672">***</span> NONE <span style="color:#f92672">***</span>
+</code></pre></div><h2 id="异常场景测试">异常场景测试</h2>
+<h3 id="测试程序">测试程序</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">Class<span style="color:#f92672">.</span><span style="color:#a6e22e">forName</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;com.mysql.jdbc.Driver&#34;</span><span style="color:#f92672">);</span>
+<span style="color:#a6e22e">@Cleanup</span> Connection connection <span style="color:#f92672">=</span> DriverManager<span style="color:#f92672">.</span><span style="color:#a6e22e">getConnection</span><span style="color:#f92672">(</span>
+  <span style="color:#e6db74">&#34;jdbc:mysql://localhost:3307/mysql?autoReconnect=false&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;root&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;123456&#34;</span>
+<span style="color:#f92672">);</span>
+
+<span style="color:#a6e22e">@Cleanup</span> Statement statement <span style="color:#f92672">=</span> connection<span style="color:#f92672">.</span><span style="color:#a6e22e">createStatement</span><span style="color:#f92672">();</span>
+<span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> 100<span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+  <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+    <span style="color:#a6e22e">@Cleanup</span> ResultSet resultSet <span style="color:#f92672">=</span> statement<span style="color:#f92672">.</span><span style="color:#a6e22e">executeQuery</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;show variables like &#39;wait_timeout&#39;&#34;</span><span style="color:#f92672">);</span>
+    resultSet<span style="color:#f92672">.</span><span style="color:#a6e22e">next</span><span style="color:#f92672">();</span>
+    System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>resultSet<span style="color:#f92672">.</span><span style="color:#a6e22e">getInt</span><span style="color:#f92672">(</span>2<span style="color:#f92672">));</span>
+  <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>Exception ex<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#75715e">// 出现异常继续
+</span><span style="color:#75715e"></span>    System<span style="color:#f92672">.</span><span style="color:#a6e22e">err</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>ex<span style="color:#f92672">.</span><span style="color:#a6e22e">getMessage</span><span style="color:#f92672">());</span>
+  <span style="color:#f92672">}</span>
+  <span style="color:#75715e">// 每次查询，中间等待 5s
+</span><span style="color:#75715e"></span>  TimeUnit<span style="color:#f92672">.</span><span style="color:#a6e22e">SECONDS</span><span style="color:#f92672">.</span><span style="color:#a6e22e">sleep</span><span style="color:#f92672">(</span>5<span style="color:#f92672">);</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><h3 id="场景-主动-kill-链接">场景： 主动 kill 链接</h3>
+<p>运行测试程序过程中，查看服务端进程</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql"><span style="color:#75715e">-- 因为 show variables like &#39;wait_timeout&#39; 语句速度很快，大部分时间都处于 Sleep 状态
+</span><span style="color:#75715e">-- 每次查询 中间等待 5s，Time 列可能会出现 0~5 之间的数字，每次查询会重新 归 0
+</span><span style="color:#75715e">-- 因为程序一直使用的同一个链接 Id 列 11 不会变
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</span> processlist;
+<span style="color:#f92672">+----+------+------------------+-------+---------+------+----------+------------------+</span>
+<span style="color:#f92672">|</span> Id <span style="color:#f92672">|</span> <span style="color:#66d9ef">User</span> <span style="color:#f92672">|</span> Host             <span style="color:#f92672">|</span> db    <span style="color:#f92672">|</span> Command <span style="color:#f92672">|</span> <span style="color:#66d9ef">Time</span> <span style="color:#f92672">|</span> State    <span style="color:#f92672">|</span> Info             <span style="color:#f92672">|</span>
+<span style="color:#f92672">+----+------+------------------+-------+---------+------+----------+------------------+</span>
+<span style="color:#f92672">|</span>  <span style="color:#ae81ff">4</span> <span style="color:#f92672">|</span> root <span style="color:#f92672">|</span> localhost        <span style="color:#f92672">|</span> <span style="color:#66d9ef">NULL</span>  <span style="color:#f92672">|</span> Query   <span style="color:#f92672">|</span>    <span style="color:#ae81ff">0</span> <span style="color:#f92672">|</span> <span style="color:#66d9ef">starting</span> <span style="color:#f92672">|</span> <span style="color:#66d9ef">show</span> processlist <span style="color:#f92672">|</span>
+<span style="color:#f92672">|</span> <span style="color:#ae81ff">11</span> <span style="color:#f92672">|</span> root <span style="color:#f92672">|</span> <span style="color:#ae81ff">172</span>.<span style="color:#ae81ff">17</span>.<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">1</span>:<span style="color:#ae81ff">35364</span> <span style="color:#f92672">|</span> mysql <span style="color:#f92672">|</span> Sleep   <span style="color:#f92672">|</span>    <span style="color:#ae81ff">4</span> <span style="color:#f92672">|</span>          <span style="color:#f92672">|</span> <span style="color:#66d9ef">NULL</span>             <span style="color:#f92672">|</span>
+<span style="color:#f92672">+----+------+------------------+-------+---------+------+----------+------------------+</span>
+</code></pre></div><p>kill 掉查看效果</p>
+<pre><code class="language-mysql " data-lang="mysql ">mysql&gt; kill 11;
+
+-- 程序报错
+Communications link failure; 
+The last packet successfully received from the server was 5,031 milliseconds ago.  
+The last packet sent successfully to the server was 26 milliseconds ago.
+...
+-- 由于 autoReconnect=false， 后续会报以下错误
+No operations allowed after statement closed.
+No operations allowed after statement closed.
+...
+</code></pre><h3 id="场景-等待-wait_timeout-超时">场景： 等待 wait_timeout 超时</h3>
+<ul>
+<li><strong>修改系统参数，对已创建的链接无效</strong></li>
+<li>需要先进行以下设置，再运行程序</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql">mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">set</span> global wait_timeout <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>;
+
+mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</span> global variables <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;wait_timeout&#39;</span>;
+<span style="color:#f92672">+---------------+-------+</span>
+<span style="color:#f92672">|</span> Variable_name <span style="color:#f92672">|</span> Value <span style="color:#f92672">|</span>
+<span style="color:#f92672">+---------------+-------+</span>
+<span style="color:#f92672">|</span> wait_timeout  <span style="color:#f92672">|</span> <span style="color:#ae81ff">3</span>     <span style="color:#f92672">|</span>
+<span style="color:#f92672">+---------------+-------+</span>
+</code></pre></div><p>查看运行效果</p>
+<pre><code class="language-mysql " data-lang="mysql ">-- 第一次链接成功后，立马查询
+3
+
+-- 第二次，因为中间等待了 5 秒，报以下异常
+Communications link failure
+The last packet successfully received from the server was 5,026 milliseconds ago.  
+The last packet sent successfully to the server was 23 milliseconds ago.
+
+-- 之后全都报以下异常
+No operations allowed after statement closed.
+No operations allowed after statement closed.
+</code></pre><h3 id="场景-autoreconnect">场景： autoReconnect</h3>
+<ul>
+<li>把 <code>autoReconnect</code> 设置为 <code>true</code>，即  <code>&quot;jdbc:mysql://localhost:3307/mysql?autoReconnect=true&quot;</code></li>
+<li>测试自动重连参数的效果</li>
+</ul>
+<p>运行测试程序过程中，查看服务端进程</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql"><span style="color:#75715e">-- 查看进程
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</span> processlist;
+<span style="color:#f92672">+----+------+------------------+-------+---------+------+----------+------------------+</span>
+<span style="color:#f92672">|</span> Id <span style="color:#f92672">|</span> <span style="color:#66d9ef">User</span> <span style="color:#f92672">|</span> Host             <span style="color:#f92672">|</span> db    <span style="color:#f92672">|</span> Command <span style="color:#f92672">|</span> <span style="color:#66d9ef">Time</span> <span style="color:#f92672">|</span> State    <span style="color:#f92672">|</span> Info             <span style="color:#f92672">|</span>
+<span style="color:#f92672">+----+------+------------------+-------+---------+------+----------+------------------+</span>
+<span style="color:#f92672">|</span>  <span style="color:#ae81ff">4</span> <span style="color:#f92672">|</span> root <span style="color:#f92672">|</span> localhost        <span style="color:#f92672">|</span> <span style="color:#66d9ef">NULL</span>  <span style="color:#f92672">|</span> Query   <span style="color:#f92672">|</span>    <span style="color:#ae81ff">0</span> <span style="color:#f92672">|</span> <span style="color:#66d9ef">starting</span> <span style="color:#f92672">|</span> <span style="color:#66d9ef">show</span> processlist <span style="color:#f92672">|</span>
+<span style="color:#f92672">|</span> <span style="color:#ae81ff">16</span> <span style="color:#f92672">|</span> root <span style="color:#f92672">|</span> <span style="color:#ae81ff">172</span>.<span style="color:#ae81ff">17</span>.<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">1</span>:<span style="color:#ae81ff">35384</span> <span style="color:#f92672">|</span> mysql <span style="color:#f92672">|</span> Sleep   <span style="color:#f92672">|</span>    <span style="color:#ae81ff">5</span> <span style="color:#f92672">|</span>          <span style="color:#f92672">|</span> <span style="color:#66d9ef">NULL</span>             <span style="color:#f92672">|</span>
+<span style="color:#f92672">+----+------+------------------+-------+---------+------+----------+------------------+</span>
+<span style="color:#75715e">-- 杀掉 
+</span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">kill</span> <span style="color:#ae81ff">16</span>;
+
+<span style="color:#75715e">-- ============================== 程序控制台
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">-- 开始正常
+</span><span style="color:#75715e"></span>..
+<span style="color:#ae81ff">28800</span>
+<span style="color:#75715e">-- kill 掉之后，报
+</span><span style="color:#75715e"></span>Communications link failure
+The last packet successfully received <span style="color:#66d9ef">from</span> the server was <span style="color:#ae81ff">5</span>,<span style="color:#ae81ff">023</span> milliseconds ago.  
+The last packet sent successfully <span style="color:#66d9ef">to</span> the server was <span style="color:#ae81ff">19</span> milliseconds ago.
+
+<span style="color:#75715e">-- 下次重新查询，正常，没有报 No operations allowed after statement closed.
+</span><span style="color:#75715e">-- statement 对象没有被关闭，进行了重连
+</span><span style="color:#75715e"></span><span style="color:#ae81ff">28800</span>
+...
+</code></pre></div><h3 id="小结">小结</h3>
+<ul>
+<li><code>Communications link failure</code> 失败由链接断开导致，但是连接断开的原因各种各样</li>
+<li><code>autoReconnect=true</code> <strong>无法避免在使用过程中异常的产生，只能下次自动重连，并非内部自动重连</strong></li>
+<li><code>autoReconnect</code> 开启后一般配合 <code>failOverReadOnly</code>，默认是 <code>true</code>，需要设置为 <code>false</code></li>
+<li><code>autoReconnect</code> 默认是 <code>false</code>，官方 <strong>并不建议把其设置为 <code>true</code></strong>，原因：
+<ul>
+<li>当程序无法正确处理 <code>SQLException</code> 时，可能会产生数据一致性的问题，如：一个事务执行了一半连接断开，假如程序的逻辑是继续往下执行，则后续操作会开启一个新的链接</li>
+<li><code>autoReconnect</code> 该参数被设计用在 程序无法正确处理死链接的场景</li>
+<li>官方建议 调大 <code>wait_timeout</code> （大于 8h）</li>
+<li>详见： Properties for Connector/J &gt; High Availability and Clustering &gt; <a href="https://dev.mysql.com/doc/connector-j/5.1/en/connector-j-reference-configuration-properties.html">autoReconnect</a></li>
+</ul>
+</li>
+<li>官方建议貌似也不太靠谱
+<ul>
+<li>调大 <code>wait_timeout</code> 会导致大量的空闲链接占用服务器资源</li>
+<li><code>autoReconnect</code> 开启担心的场景，实际业务并不常见，但是也算有一定风险</li>
+</ul>
+</li>
+<li>对于使用连接池的应用，<strong>建议通过连接池的检查机制解决</strong></li>
+</ul>
+<h2 id="连接池检查异常链接">连接池检查异常链接</h2>
+<p>以目前 最新版的 <code>com.alibaba:druid:1.1.21</code> 举例，通过以下参数进行检查。</p>
+<blockquote>
+<p>全部参数详见 ： <a href="/MySQL/docs/Jdbc/DataSource/">DataSource 配置</a></p>
+</blockquote>
+<h3 id="druid-定时扫描销毁连接">Druid 定时扫描销毁连接</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">DruidDataSource</span> <span style="color:#f92672">...</span> <span style="color:#f92672">{</span>
+
+  <span style="color:#75715e">// 启动销毁线程
+</span><span style="color:#75715e"></span>  <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">createAndStartDestroyThread</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+    <span style="color:#75715e">// 销毁 Connection 的任务
+</span><span style="color:#75715e"></span>    destroyTask <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> DestroyTask<span style="color:#f92672">();</span>
+
+    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>destroyScheduler <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+      <span style="color:#66d9ef">long</span> period <span style="color:#f92672">=</span> timeBetweenEvictionRunsMillis<span style="color:#f92672">;</span>
+      <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>period <span style="color:#f92672">&lt;=</span> 0<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        period <span style="color:#f92672">=</span> 1000<span style="color:#f92672">;</span>
+      <span style="color:#f92672">}</span>
+
+      <span style="color:#75715e">// 每 timeBetweenEvictionRunsMillis 执行一次
+</span><span style="color:#75715e"></span>      destroySchedulerFuture <span style="color:#f92672">=</span> destroyScheduler<span style="color:#f92672">.</span><span style="color:#a6e22e">scheduleAtFixedRate</span><span style="color:#f92672">(</span>destroyTask<span style="color:#f92672">,</span> period<span style="color:#f92672">,</span> period<span style="color:#f92672">,</span> TimeUnit<span style="color:#f92672">.</span><span style="color:#a6e22e">MILLISECONDS</span><span style="color:#f92672">);</span>
+
+      initedLatch<span style="color:#f92672">.</span><span style="color:#a6e22e">countDown</span><span style="color:#f92672">();</span>
+      <span style="color:#66d9ef">return</span><span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+
+    String threadName <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;Druid-ConnectionPool-Destroy-&#34;</span> <span style="color:#f92672">+</span> System<span style="color:#f92672">.</span><span style="color:#a6e22e">identityHashCode</span><span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">);</span>
+    <span style="color:#75715e">// DestroyConnectionThread 循环调用 DestroyTask.run
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">// 每次 Thread.sleep(timeBetweenEvictionRunsMillis);
+</span><span style="color:#75715e"></span>    destroyConnectionThread <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> DestroyConnectionThread<span style="color:#f92672">(</span>threadName<span style="color:#f92672">);</span>
+    destroyConnectionThread<span style="color:#f92672">.</span><span style="color:#a6e22e">start</span><span style="color:#f92672">();</span>
+  <span style="color:#f92672">}</span>
+
+  <span style="color:#75715e">// 销毁任务
+</span><span style="color:#75715e"></span>  <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">DestroyTask</span> <span style="color:#66d9ef">implements</span> Runnable <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+      <span style="color:#75715e">// 计算需要释放 Connection
+</span><span style="color:#75715e"></span>      <span style="color:#75715e">// keepAlive 默认是 false
+</span><span style="color:#75715e"></span>      shrink<span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">,</span> keepAlive<span style="color:#f92672">);</span>
+      <span style="color:#75715e">// 
+</span><span style="color:#75715e"></span>      <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>isRemoveAbandoned<span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
+        removeAbandoned<span style="color:#f92672">();</span>
+      <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+  <span style="color:#f92672">}</span>
+
+  <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">shrink</span><span style="color:#f92672">(</span><span style="color:#66d9ef">boolean</span> checkTime<span style="color:#f92672">,</span> <span style="color:#66d9ef">boolean</span> keepAlive<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+
+    <span style="color:#75715e">// ...
+</span><span style="color:#75715e"></span>
+    <span style="color:#75715e">// ❤❤❤ checkCount 需要检查的个数 = 池子大小 - minIdle 最小连接池数量（核心连接数）
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> checkCount <span style="color:#f92672">=</span> poolingCount <span style="color:#f92672">-</span> minIdle<span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">long</span> currentTimeMillis <span style="color:#f92672">=</span> System<span style="color:#f92672">.</span><span style="color:#a6e22e">currentTimeMillis</span><span style="color:#f92672">();</span>
+
+    <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> poolingCount<span style="color:#f92672">;</span> <span style="color:#f92672">++</span>i<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+      DruidConnectionHolder connection <span style="color:#f92672">=</span> connections<span style="color:#f92672">[</span>i<span style="color:#f92672">];</span>
+
+      <span style="color:#66d9ef">if</span> <span style="color:#f92672">((</span>onFatalError <span style="color:#f92672">||</span> fatalErrorIncrement <span style="color:#f92672">&gt;</span> 0<span style="color:#f92672">)</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#f92672">(</span>lastFatalErrorTimeMillis <span style="color:#f92672">&gt;</span> connection<span style="color:#f92672">.</span><span style="color:#a6e22e">connectTimeMillis</span><span style="color:#f92672">))</span>  <span style="color:#f92672">{</span>
+        keepAliveConnections<span style="color:#f92672">[</span>keepAliveCount<span style="color:#f92672">++]</span> <span style="color:#f92672">=</span> connection<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">continue</span><span style="color:#f92672">;</span>
+      <span style="color:#f92672">}</span>
+
+      <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>checkTime<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#75715e">// ❤❤❤❤ phyTimeoutMillis 默认 -1
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>phyTimeoutMillis <span style="color:#f92672">&gt;</span> 0<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+          <span style="color:#75715e">// 无连接真实的创建时间 = 当前时间 - 连接时间
+</span><span style="color:#75715e"></span>          <span style="color:#66d9ef">long</span> phyConnectTimeMillis <span style="color:#f92672">=</span> currentTimeMillis <span style="color:#f92672">-</span> connection<span style="color:#f92672">.</span><span style="color:#a6e22e">connectTimeMillis</span><span style="color:#f92672">;</span>
+          <span style="color:#75715e">// 创建时间过程 Connection 被淘汰
+</span><span style="color:#75715e"></span>          <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>phyConnectTimeMillis <span style="color:#f92672">&gt;</span> phyTimeoutMillis<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            evictConnections<span style="color:#f92672">[</span>evictCount<span style="color:#f92672">++]</span> <span style="color:#f92672">=</span> connection<span style="color:#f92672">;</span>
+            <span style="color:#66d9ef">continue</span><span style="color:#f92672">;</span>
+          <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span>
+
+        <span style="color:#75715e">// 空闲时间 = 当前时间 - 最后一次连接被使用的时间
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">long</span> idleMillis <span style="color:#f92672">=</span> currentTimeMillis <span style="color:#f92672">-</span> connection<span style="color:#f92672">.</span><span style="color:#a6e22e">lastActiveTimeMillis</span><span style="color:#f92672">;</span>
+
+        <span style="color:#75715e">// 空闲时间 &lt; minEvictableIdleTimeMillis (最小淘汰时间)，默认 30m
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// 空闲时间 &lt; keepAliveBetweenTimeMillis 默认 2m
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>idleMillis <span style="color:#f92672">&lt;</span> minEvictableIdleTimeMillis <span style="color:#f92672">&amp;&amp;</span> idleMillis <span style="color:#f92672">&lt;</span> keepAliveBetweenTimeMillis <span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+          <span style="color:#75715e">// 因为每次申请链接都是从 Pool(队列) 最后获取，
+</span><span style="color:#75715e"></span>          <span style="color:#75715e">// 所以 越靠头部 越空闲，遍历是从头部遍历的，越往后越活跃，越不空闲
+</span><span style="color:#75715e"></span>          <span style="color:#75715e">// 所以 当前连接的空闲时间如果小于驱逐时间，可以判断后续连接都小于，可以退出遍历
+</span><span style="color:#75715e"></span>          <span style="color:#66d9ef">break</span><span style="color:#f92672">;</span>
+        <span style="color:#f92672">}</span>
+
+        <span style="color:#75715e">// ❤❤❤ 空闲时间 &gt;= minEvictableIdleTimeMillis (最小淘汰时间)，默认 30m
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>idleMillis <span style="color:#f92672">&gt;=</span> minEvictableIdleTimeMillis<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+          <span style="color:#75715e">// checkCount 需要检查的个数 = 池子大小 - minIdle 最小连接池数量
+</span><span style="color:#75715e"></span>          <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>checkTime <span style="color:#f92672">&amp;&amp;</span> i <span style="color:#f92672">&lt;</span> checkCount<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            <span style="color:#75715e">// ❤❤❤ 淘汰链接是从头 开始淘汰，因为约靠头的越空闲
+</span><span style="color:#75715e"></span>            <span style="color:#75715e">// ❤❤❤ 但是因为 checkCount 的控制，会保留 minIdle 个连接
+</span><span style="color:#75715e"></span>            <span style="color:#75715e">// ❤❤❤ 如果保留的 minIdle 个连接超过了 minEvictableIdleTimeMillis 则管不到
+</span><span style="color:#75715e"></span>            evictConnections<span style="color:#f92672">[</span>evictCount<span style="color:#f92672">++]</span> <span style="color:#f92672">=</span> connection<span style="color:#f92672">;</span>
+            <span style="color:#66d9ef">continue</span><span style="color:#f92672">;</span>
+          <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>idleMillis <span style="color:#f92672">&gt;</span> maxEvictableIdleTimeMillis<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            <span style="color:#75715e">// ❤❤❤ 如果 空闲时间 &gt; maxEvictableIdleTimeMillis（7h），也会也会被淘汰，
+</span><span style="color:#75715e"></span>            <span style="color:#75715e">// ❤❤❤ 避免 minIdle（最小核心连接数）设置的太多，头部的链接一直用不到，
+</span><span style="color:#75715e"></span>            <span style="color:#75715e">// ❤❤❤ 导致空闲超过 wait_timeout，会被 MySQL Server 主动断开
+</span><span style="color:#75715e"></span>            evictConnections<span style="color:#f92672">[</span>evictCount<span style="color:#f92672">++]</span> <span style="color:#f92672">=</span> connection<span style="color:#f92672">;</span>
+            <span style="color:#66d9ef">continue</span><span style="color:#f92672">;</span>
+          <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span> 
+
+        <span style="color:#75715e">// keepAlive 默认是 false
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>keepAlive <span style="color:#f92672">&amp;&amp;</span> idleMillis <span style="color:#f92672">&gt;=</span> keepAliveBetweenTimeMillis<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+          keepAliveConnections<span style="color:#f92672">[</span>keepAliveCount<span style="color:#f92672">++]</span> <span style="color:#f92672">=</span> connection<span style="color:#f92672">;</span>
+        <span style="color:#f92672">}</span>
+      <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+        <span style="color:#75715e">// ❤❤❤ 淘汰所有头部比较闲的连接， 保留 minIdle 个连接
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>i <span style="color:#f92672">&lt;</span> checkCount<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+          evictConnections<span style="color:#f92672">[</span>evictCount<span style="color:#f92672">++]</span> <span style="color:#f92672">=</span> connection<span style="color:#f92672">;</span>
+        <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+          <span style="color:#66d9ef">break</span><span style="color:#f92672">;</span>
+        <span style="color:#f92672">}</span>
+      <span style="color:#f92672">}</span> <span style="color:#75715e">// if (checkTime) end
+</span><span style="color:#75715e"></span>    <span style="color:#f92672">}</span><span style="color:#75715e">// for end
+</span><span style="color:#75715e"></span>
+    <span style="color:#75715e">// 整理池子
+</span><span style="color:#75715e"></span>
+    <span style="color:#75715e">// 释放连接
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>evictCount <span style="color:#f92672">&gt;</span> 0<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+      <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> evictCount<span style="color:#f92672">;</span> <span style="color:#f92672">++</span>i<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        DruidConnectionHolder item <span style="color:#f92672">=</span> evictConnections<span style="color:#f92672">[</span>i<span style="color:#f92672">];</span>
+        Connection connection <span style="color:#f92672">=</span> item<span style="color:#f92672">.</span><span style="color:#a6e22e">getConnection</span><span style="color:#f92672">();</span>
+        JdbcUtils<span style="color:#f92672">.</span><span style="color:#a6e22e">close</span><span style="color:#f92672">(</span>connection<span style="color:#f92672">);</span>
+        destroyCountUpdater<span style="color:#f92672">.</span><span style="color:#a6e22e">incrementAndGet</span><span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">);</span>
+      <span style="color:#f92672">}</span>
+      Arrays<span style="color:#f92672">.</span><span style="color:#a6e22e">fill</span><span style="color:#f92672">(</span>evictConnections<span style="color:#f92672">,</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+
+    <span style="color:#75715e">// ...
+</span><span style="color:#75715e"></span>    
+  <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><h3 id="druid-获取链接">Druid 获取链接</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">DruidDataSource</span> <span style="color:#f92672">...</span> <span style="color:#f92672">{</span>
+
+  <span style="color:#a6e22e">@Override</span>
+  <span style="color:#66d9ef">public</span> DruidPooledConnection <span style="color:#a6e22e">getConnection</span><span style="color:#f92672">()</span> <span style="color:#66d9ef">throws</span> SQLException <span style="color:#f92672">{</span>
+    <span style="color:#75715e">// maxWait 默认 -1 无限等待
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">return</span> getConnection<span style="color:#f92672">(</span>maxWait<span style="color:#f92672">);</span>
+  <span style="color:#f92672">}</span>
+
+  <span style="color:#66d9ef">public</span> DruidPooledConnection <span style="color:#a6e22e">getConnection</span><span style="color:#f92672">(</span><span style="color:#66d9ef">long</span> maxWaitMillis<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> SQLException <span style="color:#f92672">{</span>
+    init<span style="color:#f92672">();</span>
+
+    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>filters<span style="color:#f92672">.</span><span style="color:#a6e22e">size</span><span style="color:#f92672">()</span> <span style="color:#f92672">&gt;</span> 0<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+      FilterChainImpl filterChain <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> FilterChainImpl<span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">);</span>
+      <span style="color:#66d9ef">return</span> filterChain<span style="color:#f92672">.</span><span style="color:#a6e22e">dataSource_connect</span><span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">,</span> maxWaitMillis<span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+      <span style="color:#75715e">// 获取链接
+</span><span style="color:#75715e"></span>      <span style="color:#66d9ef">return</span> getConnectionDirect<span style="color:#f92672">(</span>maxWaitMillis<span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+  <span style="color:#f92672">}</span>
+
+  <span style="color:#66d9ef">public</span> DruidPooledConnection <span style="color:#a6e22e">getConnectionDirect</span><span style="color:#f92672">(</span><span style="color:#66d9ef">long</span> maxWaitMillis<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> SQLException <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">int</span> notFullTimeoutRetryCnt <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">for</span> <span style="color:#f92672">(;;)</span> <span style="color:#f92672">{</span>
+      DruidPooledConnection poolableConnection<span style="color:#f92672">;</span>
+      <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+        <span style="color:#75715e">// 从队尾获取链接
+</span><span style="color:#75715e"></span>        poolableConnection <span style="color:#f92672">=</span> getConnectionInternal<span style="color:#f92672">(</span>maxWaitMillis<span style="color:#f92672">);</span>
+      <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>GetConnectionTimeoutException ex<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#f92672">...</span>
+        <span style="color:#66d9ef">throw</span> ex<span style="color:#f92672">;</span>
+      <span style="color:#f92672">}</span>
+
+      <span style="color:#75715e">// ❤❤ testOnBorrow 
+</span><span style="color:#75715e"></span>      <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>testOnBorrow<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#75715e">// 校验链接 执行 validationQuery
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">boolean</span> validate <span style="color:#f92672">=</span> testConnectionInternal<span style="color:#f92672">(</span>poolableConnection<span style="color:#f92672">.</span><span style="color:#a6e22e">holder</span><span style="color:#f92672">,</span> poolableConnection<span style="color:#f92672">.</span><span style="color:#a6e22e">conn</span><span style="color:#f92672">);</span>
+        <span style="color:#75715e">// 如果不可用
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(!</span>validate<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+          <span style="color:#75715e">// ..
+</span><span style="color:#75715e"></span>          <span style="color:#75715e">// 释放 链接
+</span><span style="color:#75715e"></span>          discardConnection<span style="color:#f92672">(</span>poolableConnection<span style="color:#f92672">.</span><span style="color:#a6e22e">holder</span><span style="color:#f92672">);</span>
+          <span style="color:#75715e">// 重新获取
+</span><span style="color:#75715e"></span>          <span style="color:#66d9ef">continue</span><span style="color:#f92672">;</span>
+        <span style="color:#f92672">}</span>
+      <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+        <span style="color:#75715e">// testOnBorrow 为 false， 检查 真实的 Connection 是否被标记为 Close
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>poolableConnection<span style="color:#f92672">.</span><span style="color:#a6e22e">conn</span><span style="color:#f92672">.</span><span style="color:#a6e22e">isClosed</span><span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
+          <span style="color:#75715e">// 关闭的链接释放 
+</span><span style="color:#75715e"></span>          discardConnection<span style="color:#f92672">(</span>poolableConnection<span style="color:#f92672">.</span><span style="color:#a6e22e">holder</span><span style="color:#f92672">);</span> 
+          <span style="color:#75715e">// 重新获取
+</span><span style="color:#75715e"></span>          <span style="color:#66d9ef">continue</span><span style="color:#f92672">;</span>
+        <span style="color:#f92672">}</span>
+        <span style="color:#75715e">// ❤❤ testWhileIdle 
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>testWhileIdle<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+          <span style="color:#75715e">// ...
+</span><span style="color:#75715e"></span>          <span style="color:#75715e">// 空闲时间
+</span><span style="color:#75715e"></span>          <span style="color:#66d9ef">long</span> idleMillis <span style="color:#f92672">=</span> currentTimeMillis <span style="color:#f92672">-</span> lastActiveTimeMillis<span style="color:#f92672">;</span>
+          <span style="color:#75715e">// 检查周期
+</span><span style="color:#75715e"></span>          <span style="color:#66d9ef">long</span> timeBetweenEvictionRunsMillis <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">timeBetweenEvictionRunsMillis</span><span style="color:#f92672">;</span>
+          <span style="color:#75715e">// 如果没有设置，强制设置默认值 60s
+</span><span style="color:#75715e"></span>          <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>timeBetweenEvictionRunsMillis <span style="color:#f92672">&lt;=</span> 0<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            timeBetweenEvictionRunsMillis <span style="color:#f92672">=</span> DEFAULT_TIME_BETWEEN_EVICTION_RUNS_MILLIS<span style="color:#f92672">;</span>
+          <span style="color:#f92672">}</span>
+          <span style="color:#75715e">// ❤❤❤ 空闲时间 &gt;= 扫描周期（未设置的时候是 60s ），主动触发校验
+</span><span style="color:#75715e"></span>          <span style="color:#75715e">// ❤❤❤ 相当于获取链接的时候，默认如果链接空闲超过 1m 就会被检查
+</span><span style="color:#75715e"></span>          <span style="color:#75715e">// ❤❤❤ 跟想象中不一样， timeBetweenEvictionRunsMillis 有两个含义 ❤❤❤
+</span><span style="color:#75715e"></span>          <span style="color:#75715e">// ❤❤❤ 1. 后台任务检查空闲连接的周期 2. 获取连接时判断空闲连接是否可用的阀值 ❤❤❤ 
+</span><span style="color:#75715e"></span>          <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>idleMillis <span style="color:#f92672">&gt;=</span> timeBetweenEvictionRunsMillis <span style="color:#f92672">||</span> idleMillis <span style="color:#f92672">&lt;</span> 0<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            <span style="color:#75715e">// 校验链接 执行 validationQuery
+</span><span style="color:#75715e"></span>            <span style="color:#66d9ef">boolean</span> validate <span style="color:#f92672">=</span> testConnectionInternal<span style="color:#f92672">(</span>poolableConnection<span style="color:#f92672">.</span><span style="color:#a6e22e">holder</span><span style="color:#f92672">,</span> poolableConnection<span style="color:#f92672">.</span><span style="color:#a6e22e">conn</span><span style="color:#f92672">);</span>
+            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(!</span>validate<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+              <span style="color:#75715e">// ..
+</span><span style="color:#75715e"></span>              <span style="color:#75715e">// 释放 链接
+</span><span style="color:#75715e"></span>              discardConnection<span style="color:#f92672">(</span>poolableConnection<span style="color:#f92672">.</span><span style="color:#a6e22e">holder</span><span style="color:#f92672">);</span>
+              <span style="color:#75715e">// 重新获取
+</span><span style="color:#75715e"></span>              <span style="color:#66d9ef">continue</span><span style="color:#f92672">;</span>
+            <span style="color:#f92672">}</span>
+          <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span>
+      <span style="color:#f92672">}</span>
+
+      <span style="color:#75715e">// ...
+</span><span style="color:#75715e"></span>
+      <span style="color:#66d9ef">if</span> <span style="color:#f92672">(!</span><span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">defaultAutoCommit</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        poolableConnection<span style="color:#f92672">.</span><span style="color:#a6e22e">setAutoCommit</span><span style="color:#f92672">(</span><span style="color:#66d9ef">false</span><span style="color:#f92672">);</span>
+      <span style="color:#f92672">}</span>
+
+      <span style="color:#66d9ef">return</span> poolableConnection<span style="color:#f92672">;</span>
+      
+    <span style="color:#f92672">}</span> <span style="color:#75715e">// for (;;)
+</span><span style="color:#75715e"></span>  <span style="color:#f92672">}</span>
+
+<span style="color:#f92672">}</span>
+</code></pre></div><h3 id="druid-连接池小结">Druid 连接池小结</h3>
+<ul>
+<li>只配置 <code>validationQuery</code>，其他参数全都默认情况下</li>
+<li>获取链接
+<ul>
+<li>检查连接是否 <code>close</code></li>
+<li>如果连接空闲超过 <code>timeBetweenEvictionRunsMillis(1m)</code> 检查可用性</li>
+</ul>
+</li>
+<li>后台淘汰任务
+<ul>
+<li>每  <code>timeBetweenEvictionRunsMillis(1m)</code>  执行一次</li>
+<li>非核心线程 <code>minIdle(0)</code> 检查 空闲时间大于 <code>minEvictableIdleTimeMillis(30m)</code> 淘汰</li>
+<li>所有连接，检查 空闲时间大于 <code>maxEvictableIdleTimeMillis(7h)</code> 淘汰</li>
+</ul>
+</li>
+<li><strong>总结：使用 Druid，不可能出现 8 小时问题</strong>
+<ul>
+<li><strong>只要配了  <code>validationQuery</code></strong>，获取链接时，空闲超过 <code>1m</code> 就会被检查，<strong>单这一步就能避免</strong></li>
+<li><strong>如果都没配</strong>，后台定时任务，<code>maxEvictableIdleTimeMillis(7h)</code> 会针对所有连接检查空闲链接</li>
+</ul>
+</li>
+<li>连接被强制 <code>kill</code> 的情况
+<ul>
+<li>Druid 的连接检查机制，无法处理 <strong>使用过程中</strong> 连接被强制 <code>kill</code> 的</li>
+<li><code>autoReconnect</code> 也不行</li>
+<li>两个都可以保证下次使用的时候，链接是可以用的</li>
+<li><strong>所以 <code>autoReconnect</code> 可配可不配，建议不用配置，使用 Druid 的连接检查机制即可</strong></li>
+</ul>
+</li>
+</ul>
+<h2 id="确定是否-wait_timeout-问题">确定是否 wait_timeout 问题</h2>
+<ul>
+<li>检查 MySQL <code>wait_timeout</code> 设置的多少</li>
+<li>查看 <code>The last packet successfully received from the server was xxx,xxx milliseconds ago</code> 中报的时间是多少</li>
+<li>如果 <code>xxx,xxx milliseconds</code> 大于 <code>wait_timeout</code> 设置的时间，则很要可能是被 MySQL Server 主动关闭</li>
+<li>如果是 <code>xxx,xxx milliseconds</code> 小于  <code>wait_timeout</code>，则考虑是否是被人工 <code>kill</code></li>
+<li>如果是 <code>xxx,xxx milliseconds</code> 徘徊在某个时间区间以内，考虑是否有定时任务在 <code>kill</code> 慢SQL
+<ul>
+<li>如： <a href="https://www.cnblogs.com/wjoyxt/p/6025846.html">pt-kill</a> 杀死指定用户超过 xx秒的查询，以此避免服务被 慢 SQL 拖垮</li>
+</ul>
+</li>
+</ul>
+<h2 id="read-more">Read More</h2>
+<ul>
+<li>Server System Variables - <a href="https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html#sysvar_wait_timeout">wait_timeout</a></li>
+<li><a href="https://www.cnblogs.com/ivictor/p/5979731.html">MySQL 中 interactive_timeout 和 wait_timeout 的区别</a></li>
+<li>Configuration Properties for Connector/J &gt; High Availability and Clustering &gt; <a href="https://dev.mysql.com/doc/connector-j/5.1/en/connector-j-reference-configuration-properties.html">autoReconnect</a></li>
+<li><a href="https://github.com/percona/percona-toolkit">Percona Toolkit</a> 工具包（<code>pt-kill</code> ： kill 掉符合指定条件mysql语句）</li>
+<li><a href="https://www.cnblogs.com/zishengY/p/6852280.html">linux 下 percona-toolkit 工具包的安装和使用（超详细版）</a></li>
+</ul>
+</article>
+
+      
+<div class="book-footer justify-end">
+  
+  
+  <div>
+    <a href="https://github.com/hello-world-example/MySQL/edit/master/HuGo/content/docs/Better/wait_timeout.md" target="_blank" rel="noopener">
+      <img src="/MySQL/svg/edit.svg" alt="Edit" /> Edit this page
+    </a>
+  </div>
+  
+</div>
+
+
+      
+    </div>
+
+    
+  
+
+  <aside class="book-toc level-3 fixed">
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#wait_timeout-和-interactive_timeout">wait_timeout 和 interactive_timeout</a>
+      <ul>
+        <li><a href="#测试">测试</a></li>
+      </ul>
+    </li>
+    <li><a href="#异常场景测试">异常场景测试</a>
+      <ul>
+        <li><a href="#测试程序">测试程序</a></li>
+        <li><a href="#场景-主动-kill-链接">场景： 主动 kill 链接</a></li>
+        <li><a href="#场景-等待-wait_timeout-超时">场景： 等待 wait_timeout 超时</a></li>
+        <li><a href="#场景-autoreconnect">场景： autoReconnect</a></li>
+        <li><a href="#小结">小结</a></li>
+      </ul>
+    </li>
+    <li><a href="#连接池检查异常链接">连接池检查异常链接</a>
+      <ul>
+        <li><a href="#druid-定时扫描销毁连接">Druid 定时扫描销毁连接</a></li>
+        <li><a href="#druid-获取链接">Druid 获取链接</a></li>
+        <li><a href="#druid-连接池小结">Druid 连接池小结</a></li>
+      </ul>
+    </li>
+    <li><a href="#确定是否-wait_timeout-问题">确定是否 wait_timeout 问题</a></li>
+    <li><a href="#read-more">Read More</a></li>
+  </ul>
+</nav>
+  </aside>
+
+
+
+  </main>
+  
+  
+  
+</body>
+
+</html>

@@ -65,6 +65,7 @@ https://github.com/alex-shpak/hugo-book
 <li><strong>Better</strong>
 <ul>
 <li><a href="/MySQL/docs/Better/innodb_lock_wait_timeout/">锁等待时间</a></li>
+<li><a href="/MySQL/docs/Better/wait_timeout/">链接超时时间</a></li>
 </ul>
 </li>
 <li><strong>Binlog</strong>
@@ -120,6 +121,7 @@ https://github.com/alex-shpak/hugo-book
 
       
 <article class="markdown"><h1 id="锁等待超时">锁等待超时</h1>
+<h2 id="简介">简介</h2>
 <h3 id="锁超时lock-wait-timeout-和-死锁dead-lock">锁超时(Lock wait timeout) 和 死锁(Dead Lock)</h3>
 <ul>
 <li><strong>Lock wait timeout</strong>
@@ -591,7 +593,7 @@ mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">SELECT<
 </ul>
 <h2 id="如何避免或减少锁超时的情况">如何避免或减少锁超时的情况</h2>
 <ul>
-<li>事务不要太大，不要一股脑的往同一个事务里面方式，要思考
+<li>事务不要太大，不要一股脑的往同一个事务里面放，要思考
 <ul>
 <li>哪些是不必要事务执行的</li>
 <li>哪些步骤是可以分步执行的</li>
@@ -619,7 +621,7 @@ mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">SELECT<
   
   <div>
     
-    <a href="https://github.com/hello-world-example/MySQL/commit/a172f4028390a48b71891a73b708c673cae93d91" title='Last modified Mar 28, 2020 by kailbin' target="_blank" rel="noopener">
+    <a href="https://github.com/hello-world-example/MySQL/commit/be3fd4308d6dd2c42e77b6f1693cdd0ea01df480" title='Last modified Mar 28, 2020 by kailbin' target="_blank" rel="noopener">
       <img src="/MySQL/svg/calendar.svg" alt="Changed" /> Mar 28, 2020
     </a>
   </div>
@@ -643,7 +645,7 @@ mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">SELECT<
   <aside class="book-toc level-3 fixed">
     <nav id="TableOfContents">
   <ul>
-    <li>
+    <li><a href="#简介">简介</a>
       <ul>
         <li><a href="#锁超时lock-wait-timeout-和-死锁dead-lock">锁超时(Lock wait timeout) 和 死锁(Dead Lock)</a></li>
         <li><a href="#innodb_lock_wait_timeout-和-lock_wait_timeout">innodb_lock_wait_timeout 和 lock_wait_timeout</a></li>
