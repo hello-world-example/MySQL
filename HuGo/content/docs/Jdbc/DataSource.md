@@ -2,8 +2,8 @@
 
 |           Druid 数据源            |         默认         |             建议              | 说明                                                         |
 | :-------------------------------: | :------------------: | :---------------------------: | ------------------------------------------------------------ |
-|          **initialSize**          |         `0`          |             `10`              | 初始化时建立物理连接的个数                                   |
-|            **minIdle**            |         `0`          |             `10`              | 最小连接池数量（核心链接数）                                 |
+|          **initialSize**          |         `0`          |             `10`              | 初始化时建立物理连接的个数<br />1. 显式调用 `init` 方法<br />2. 第一次 `getConnection` 时 |
+|            **minIdle**            |         `0`          |             `10`              | 最小连接池数量（核心链接数）<br />销毁空闲链接时会保留该参数制定的链接数 |
 |           **maxActive**           |         `8`          |             `50`              | 最大连接池数量                                               |
 |            ~~maxIdle~~            |                      |                               | 废弃                                                         |
 |            **maxWait**            |         `-1`         |            `1000`             | 当没有可用连接时，等待连接被归还的最大时间，单位毫秒，-1 无限等待 |
@@ -12,10 +12,10 @@
 |         **testOnBorrow**          |       `false`        |                               | 申请连接时检测连接是否有效，做了这个配置会降低性能           |
 |         **testOnReturn**          |       `false`        |                               | 归还连接时检测连接是否有效，做了这个配置会降低性能           |
 |         **testWhileIdle**         |        `true`        |                               | 空闲时检查链接是否有效，如果空闲时间大于`timeBetweenEvictionRunsMillis` 进行检查 |
-|             keepAlive             |       `false`        |                               | 连接池中的 `minIdle` 数量以内的连接，空闲时间超过`minEvictableIdleTimeMillis`，则会执行`keepAlive`操作。 |
-| **timeBetweenEvictionRunsMillis** |  `60000`<br />`1m`   |                               | 1. 检测连接线程执行的间隔时间，如果连接空闲时间大于等于`minEvictableIdleTimeMillis` 则关闭物理连接，-1 不检查<br />2. 获取连接时判断空闲连接是否可用的阀值 |
+|             keepAlive             |       `false`        |            `true`             | 连接池中的 `minIdle` 数量以内的连接，空闲时间超过 `minEvictableIdleTimeMillis`，则会执行 `keepAlive` 操作（校验是否可用） |
+| **timeBetweenEvictionRunsMillis** |  `60000`<br />`1m`   |                               | 1. **检测连接线程**执行的间隔时间，如果连接空闲时间大于等于`minEvictableIdleTimeMillis` 则关闭物理连接，<=0 时默认 `1s` <br />2. **获取连接时**判断空闲连接是否可用的阀值，<=0 时使用默认值 |
 |  **minEvictableIdleTimeMillis**   | `1800000`<br />`30m` |      `300000`<br />`5m`       | **针对大于核心连接数(minIdle)的链接**，超过空闲时间会被驱逐  |
-|  **maxEvictableIdleTimeMillis**   | `25200000`<br />`7h` | 小于 MySQL `wait_timeout`参数 | **针对所有连接**，超过空闲时间会被驱逐，**解决 8 小时问题**，建议检查 `wait_timeout` 参数 |
+|  **maxEvictableIdleTimeMillis**   | `25200000`<br />`7h` | 小于 MySQL `wait_timeout`参数 | **针对所有连接**，超过空闲时间会被驱逐，**解决 8 小时问题**，建议查看 MySQL `wait_timeout` 参数 |
 |       **phyTimeoutMillis**        |         `-1`         |                               | 针对所有连接**，**创建时间**超过该时间被驱逐**               |
 |        connectionInitSqls         |                      |                               | 物理连接初始化的时候执行的 sql                               |
 |          removeAbandoned          |       `false`        |                               | 检查从 Pool 中获取链接，配合 `removeAbandonedTimeoutMillis`  |
@@ -67,6 +67,8 @@
 
 ## Read More
 
-- [Druid 可配置属性] [DruidDataSource 配置属性列表](https://github.com/alibaba/druid/wiki/DruidDataSource配置属性列表)
+- [Druid 可配置属性] [DruidDataSource 配置属性列表](https://github.com/alibaba/druid/wiki/DruidDataSource配置属性列表) 有几处错误
+  - `testOnBorrow` 默认 `false`
+  - `testWhileIdle` 默认 `true`
 - [Druid 配置示例] [DruidDataSource配置](https://github.com/alibaba/druid/wiki/DruidDataSource%E9%85%8D%E7%BD%AE) 
 - [常用数据库连接池 (DBCP、c3p0、Druid) 配置说明](https://www.cnblogs.com/JavaSubin/p/5294721.html)
